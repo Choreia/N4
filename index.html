@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Choreia N4</title>
+<title>Choreia Learn</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -216,15 +216,15 @@ footer{max-width:1140px;margin:0 auto;padding:18px 22px;color:var(--muted);font-
 <body>
 
 <header class="app">
-  <span class="brand"><span class="mark">四</span>Choreia<small>N4</small></span>
+  <span class="brand"><span class="mark">学</span>Choreia<small>Learn</small></span>
   <span class="spacer"></span>
   <div id="auth-out"><button class="btn" onclick="handleSignIn()">Sign in with Google</button></div>
   <div id="user-area" style="display:none"><img id="user-avatar" alt=""><span id="user-name"></span><button class="btn ghost small" id="btn-admin" style="display:none" onclick="openAdmin()">⚙ 管理</button><button class="btn ghost small" onclick="handleSignOut()">Sign out</button></div>
 </header>
 
 <div id="view-welcome" class="center">
-  <h1>Choreia N4</h1>
-  <p>JLPT N4 practice: vocabulary, kanji, grammar and reading.<br>Every answer and how long it took are saved, so you and your mentor can see your progress.</p>
+  <h1>Choreia Learn</h1>
+  <p>Japanese N4 for English speakers, and English for Japanese speakers.<br>Every answer and how long it took are saved, so you can see your own progress.<br><span style="color:var(--muted)">英語を学ぶ人向けの日本語N4コースと、日本語話者向けの英語コース。回答と回答時間を記録します。</span></p>
   <button class="btn" onclick="handleSignIn()">Sign in with Google</button>
   <p class="hint">Use your organization account (@m2-labo.jp).</p>
 </div>
@@ -251,7 +251,7 @@ footer{max-width:1140px;margin:0 auto;padding:18px 22px;color:var(--muted);font-
   <main id="main"></main>
 </div>
 
-<footer>Choreia N4 ─ JLPT N4 practice. Answers are saved to your organization's spreadsheet. M2Labo</footer>
+<footer>Choreia Learn ─ Japanese N4 / English. Answers are saved to your organization's spreadsheet. M2Labo</footer>
 
 <div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal"></div></div>
 <div class="toast" id="toast"></div>
@@ -264,23 +264,30 @@ var SCOPES='https://www.googleapis.com/auth/drive https://www.googleapis.com/aut
 var CONFIG_FILENAME='choreia-n4-config.json';
 var TOKEN_KEY='choreia_n4_token';
 var CONFIG_CACHE_KEY='choreia_n4_config_cache';
+var COURSE_KEY='choreia_n4_course';
 var BLOCKED_DOMAINS=['gmail.com','googlemail.com','yahoo.co.jp','yahoo.com','hotmail.com','outlook.com','outlook.jp','icloud.com','me.com','mac.com','aol.com','protonmail.com','zoho.com','live.com','live.jp','msn.com','nifty.com','biglobe.ne.jp','ocn.ne.jp'];
 
-var Q_FIELDS=['id','cat','q','a','b','c','d','ans','exp','active'];
-var LOG_FIELDS=['at','email','name','session','qid','cat','q','choice','correct','sec'];
+var Q_FIELDS=['id','cat','q','a','b','c','d','ans','exp','active','course'];
+var LOG_FIELDS=['at','email','name','session','qid','cat','q','choice','correct','sec','course'];
 var SETTING_FIELDS=['key','value'];
 var SHEET_DEFS=[
-  {title:'問題',fields:Q_FIELDS,headers:['ID','分野','問題','選択肢A','選択肢B','選択肢C','選択肢D','正解(A-D)','解説','有効(yes/no)']},
-  {title:'回答ログ',fields:LOG_FIELDS,headers:['日時','メール','氏名','セッション','問題ID','分野','問題','回答','正誤(1/0)','回答秒数']},
+  {title:'問題',fields:Q_FIELDS,headers:['ID','分野','問題','選択肢A','選択肢B','選択肢C','選択肢D','正解(A-D)','解説','有効(yes/no)','コース(jp/en)']},
+  {title:'回答ログ',fields:LOG_FIELDS,headers:['日時','メール','氏名','セッション','問題ID','分野','問題','回答','正誤(1/0)','回答秒数','コース']},
   {title:'設定',fields:SETTING_FIELDS,headers:['キー','値']}
 ];
-var CATS=[
-  {id:'vocab',label:'Vocabulary',sub:'語彙'},
-  {id:'kanji',label:'Kanji',sub:'漢字'},
-  {id:'grammar',label:'Grammar',sub:'文法'},
-  {id:'reading',label:'Reading',sub:'読解'}
-];
-function catLabel(id){for(var i=0;i<CATS.length;i++)if(CATS[i].id===id)return CATS[i].label;return id;}
+// コース: jp = 日本語N4(学習者向けUIは英語) / en = 英語(学習者向けUIは日本語)
+var COURSES={
+  jp:{label:'Japanese N4',sub:'日本語 N4',ui:'en',seed:function(){return SEED;},cats:[
+    {id:'vocab',label:'Vocabulary',sub:'語彙'},{id:'kanji',label:'Kanji',sub:'漢字'},{id:'grammar',label:'Grammar',sub:'文法'},{id:'reading',label:'Reading',sub:'読解'}]},
+  en:{label:'英語',sub:'English',ui:'ja',seed:function(){return SEED_EN;},cats:[
+    {id:'vocab',label:'単語',sub:'Vocabulary'},{id:'grammar',label:'文法',sub:'Grammar'},{id:'expressions',label:'表現',sub:'Expressions'},{id:'reading',label:'読解',sub:'Reading'}]}
+};
+var UI={
+  en:{study:'Study',progress:'Progress',pick:'Pick a category and the number of questions. Each answer and its time are saved.',all:'All categories',allsub:'ぜんぶ',questions:'questions',nq:'Questions:',start:'Start ▶',today:'Today',total:'Total',answers:'answers',noq:'No questions yet. Ask the admin to fill the 問題 sheet.',next:'Next ▶',results:'See results',quit:'Quit',correct:'Correct!',wrong:'Not quite.',pct:'correct',totaltime:'total',perq:'per question',q:'Question',your:'Your answer',result:'Result',time:'Time',again:'Study again',unsaved:'answers not yet saved.',retry:'Retry',learner:'Learner',none:'No answers yet.',acc:'accuracy',avg:'avg time / question',days:'days studied',bycat:'By category',category:'Category',sessions:'Recent sessions',date:'Date',score:'Score',review:'Needs review',mixed:'Mixed',course:'Course',nocat:'No questions in this category'},
+  ja:{study:'学習',progress:'進捗',pick:'分野と問題数を選んでください。回答と回答時間は1問ごとに記録されます。',all:'全分野',allsub:'All',questions:'問',nq:'問題数:',start:'開始 ▶',today:'今日',total:'累計',answers:'問',noq:'問題がまだありません。管理者が「問題」シートに追加してください。',next:'次へ ▶',results:'結果を見る',quit:'中断',correct:'正解！',wrong:'不正解',pct:'正答率',totaltime:'合計',perq:'1問あたり',q:'問題',your:'あなたの回答',result:'正誤',time:'時間',again:'もう一度',unsaved:'件の回答が未保存です。',retry:'再試行',learner:'学習者',none:'まだ回答がありません。',acc:'正答率',avg:'平均回答時間',days:'学習日数',bycat:'分野別',category:'分野',sessions:'最近のセッション',date:'日時',score:'得点',review:'要復習',mixed:'複数',course:'コース',nocat:'この分野の問題がありません'}
+};
+function T(k){return (UI[COURSES[course].ui]||UI.en)[k]||k;}
+function catLabel(id){var cs=COURSES[course].cats;for(var i=0;i<cs.length;i++)if(cs[i].id===id)return cs[i].label;return id;}
 
 // ==================== State ====================
 var tokenClient=null,accessToken=null;
@@ -289,7 +296,8 @@ var orgConfig=null;
 var questions=[],logs=[],sheetSettings={},dataLoadError=null;
 var setupDriveId='',setupDriveName='',setupFolderId='',setupFolderName='',setupFolderPath=[];
 var tab='study',viewEmail='';
-var quiz=null; // {session,cat,items:[{q,opts:[{k,text,letter}],choice,correct,sec}],i,startedAt,qStart}
+var course=(function(){try{var c=localStorage.getItem(COURSE_KEY);return COURSES[c]?c:'jp';}catch(e){return 'jp';}})();
+var quiz=null; // {session,cat,items:[{q,opts:[{letter,text}],choice,correct,sec}],i,qStart}
 var studyCat='all',studyCount=10;
 // ==================== Seed questions (written to the 問題 sheet on first setup) ====================
 // [category, prompt, A, B, C, D, correct letter, explanation]. Options are shuffled on screen.
@@ -388,6 +396,87 @@ var SEED=[
 ['reading','「山田さんへ。先に帰ります。机の上に本を置いておきました。読み終わったら、図書館に返しておいてください。鈴木」 What does Suzuki ask Yamada to do?','return the book to the library after reading','buy a book','put the book on the desk','go home early','A','図書館に返しておいてください = please return it to the library.'],
 ['reading','「アルバイト募集。時間：午後5時から9時まで。週に3日以上働ける方。経験がなくても大丈夫です。」 Who can apply?','someone who can work 3 or more days a week','only experienced people','only people who can work every day','only people who can work in the morning','A','週に3日以上 = 3 days or more a week. 経験がなくても大丈夫 = no experience needed.']
 ];
+// English course (for Japanese speakers). [category, prompt, A, B, C, D, correct letter, explanation]
+var SEED_EN=[
+['vocab','"deadline" の意味は？','締め切り','予算','見積もり','配達','A','deadline = 締め切り。meet the deadline = 締め切りに間に合わせる。'],
+['vocab','"estimate" の意味は？','見積もり・概算','契約','請求書','領収書','A','estimate = 見積もり。rough estimate = 概算。'],
+['vocab','"postpone" の意味は？','延期する','中止する','承認する','確認する','A','postpone = 延期する。cancel = 中止する。'],
+['vocab','"confirm" の意味は？','確認する・確定する','否定する','提案する','断る','A','confirm = 確認・確定する。Please confirm your attendance.'],
+['vocab','"negotiate" の意味は？','交渉する','無視する','通知する','移動する','A','negotiate = 交渉する。negotiation = 交渉。'],
+['vocab','"invoice" の意味は？','請求書','領収書','見積書','納品書','A','invoice = 請求書。receipt = 領収書。'],
+['vocab','"revenue" の意味は？','売上・収益','費用','利益','負債','A','revenue = 売上(収益)。profit = 利益。cost/expense = 費用。'],
+['vocab','"implement" の意味は？','実装する・実施する','説明する','削除する','疑う','A','implement = 実行・実装する。implementation = 実装。'],
+['vocab','"approximately" の意味は？','およそ・約','正確に','ほとんど','すぐに','A','approximately = およそ。= about / roughly。'],
+['vocab','"urgent" の意味は？','緊急の','重要な','簡単な','退屈な','A','urgent = 緊急の。important = 重要な。'],
+['vocab','"attach" の意味は？','添付する','削除する','転送する','返信する','A','attach = 添付する。Please find the attached file.'],
+['vocab','"available" の意味は？','利用できる・都合がつく','忙しい','不在の','有名な','A','available = 利用可能・空いている。Are you available tomorrow?'],
+['vocab','"inquiry" の意味は？','問い合わせ','苦情','注文','返金','A','inquiry = 問い合わせ。complaint = 苦情。'],
+['vocab','"reliable" の意味は？','信頼できる','危険な','高価な','柔軟な','A','reliable = 信頼できる。rely on = 〜に頼る。'],
+['vocab','"accomplish" の意味は？','達成する','諦める','始める','延期する','A','accomplish = 達成する(= achieve)。'],
+['vocab','"colleague" の意味は？','同僚','上司','顧客','取引先','A','colleague = 同僚。boss/supervisor = 上司。client = 顧客。'],
+['vocab','"procedure" の意味は？','手順・手続き','製品','提案','目的','A','procedure = 手順。process = 工程。'],
+['vocab','"evaluate" の意味は？','評価する','避ける','展開する','到着する','A','evaluate = 評価する。evaluation = 評価。'],
+['vocab','"sufficient" の意味は？','十分な','不足した','効率的な','特別な','A','sufficient = 十分な。insufficient = 不十分な。'],
+['vocab','"maintenance" の意味は？','保守・維持管理','製造','販売','設計','A','maintenance = 保守。maintain = 維持する。'],
+['vocab','"consequently" の意味は？','その結果','しかしながら','たとえば','さらに','A','consequently = その結果 (= as a result)。'],
+['vocab','"temporary" の意味は？','一時的な','永久の','公式の','最終的な','A','temporary = 一時的な。permanent = 永久の。'],
+['vocab','"purchase" の意味は？','購入する','販売する','借りる','返品する','A','purchase = 購入する(= buy)。'],
+['vocab','"agenda" の意味は？','議題・予定表','議事録','報告書','契約書','A','agenda = 議題。minutes = 議事録。'],
+['vocab','"expand" の意味は？','拡大する','縮小する','説明する','期待する','A','expand = 拡大する。expansion = 拡大。'],
+['vocab','"appreciate" の意味は？','感謝する・真価を認める','謝罪する','承認する','予約する','A','I appreciate your help. = 助けてくれてありがとう。'],
+['vocab','"feasible" の意味は？','実現可能な','柔軟な','有名な','豊富な','A','feasible = 実現可能な。feasibility study = 実現可能性調査。'],
+['vocab','"outcome" の意味は？','結果・成果','収入','外出','意見','A','outcome = 結果。income = 収入。'],
+['vocab','"prior to" の意味は？','〜の前に','〜の後に','〜の代わりに','〜に加えて','A','prior to = before。prior to the meeting = 会議の前に。'],
+['vocab','"in charge of" の意味は？','〜を担当して','〜を無料で','〜を請求して','〜を変更して','A','be in charge of = 〜の担当である。'],
+['grammar','I have ＿ in Tokyo for five years. (ずっと住んでいる)','lived','live','living','been live','A','現在完了 have + 過去分詞。継続を表す。'],
+['grammar','If it ＿ tomorrow, we will cancel the event.','rains','will rain','rained','is rain','A','条件を表すif節の中は、未来のことでも現在形。'],
+['grammar','She ＿ to the office when I called her.','was driving','is driving','drives','drove','A','過去のある時点で進行中 = 過去進行形。'],
+['grammar','The report ＿ by Friday.','must be submitted','must submit','must submitting','must to submit','A','受動態 must be + 過去分詞。「提出されなければならない」。'],
+['grammar','This is the best proposal ＿ I have ever seen.','that','what','which','who','A','最上級 + that：先行詞に最上級がつくときは that が好まれる。'],
+['grammar','We look forward to ＿ you next week.','seeing','see','be seen','saw','A','look forward to の to は前置詞なので動名詞。'],
+['grammar','He suggested ＿ the meeting to Monday.','moving','to move','move','moved','A','suggest は動名詞を目的語にとる。'],
+['grammar','＿ he was tired, he kept working.','Although','Despite','Because','Unless','A','Although + 主語 + 動詞 = 〜だけれども。Despite の後は名詞。'],
+['grammar','The number of customers ＿ increasing.','is','are','were','have','A','The number of ... は単数扱い。A number of ... は複数扱い。'],
+['grammar','I wish I ＿ more time.','had','have','will have','having','A','I wish + 過去形 = 現在の事実に反する願望。'],
+['grammar','Could you tell me where ＿?','the station is','is the station','the station','is station','A','間接疑問文は 主語 + 動詞 の語順。'],
+['grammar','She has been working here ＿ 2020.','since','for','from','during','A','since + 起点。for + 期間。'],
+['grammar','Neither the manager ＿ the staff knew about it.','nor','or','and','but','A','neither A nor B = AもBも〜ない。'],
+['grammar','You ＿ have told me earlier. (言ってくれればよかったのに)','should','must','would','can','A','should have + 過去分詞 = 〜すべきだった(非難・後悔)。'],
+['grammar','By the time you arrive, the meeting ＿.','will have finished','finished','finishes','has finished','A','未来のある時点までに完了 = 未来完了。'],
+['grammar','The device ＿ in Japan is very popular.','made','making','makes','to make','A','過去分詞の後置修飾。the device (which was) made in Japan。'],
+['grammar','It is important ＿ the data regularly.','to back up','back up','backing up','backed up','A','It is + 形容詞 + to 不定詞。'],
+['grammar','He is used to ＿ early.','getting up','get up','got up','be getting up','A','be used to + 動名詞 = 〜に慣れている。used to + 動詞原形 = 以前は〜した。'],
+['grammar','We need someone ＿ can speak Hindi.','who','which','whom','whose','A','人が先行詞の主格関係代名詞 who。'],
+['grammar','＿ of the two plans is cheaper?','Which','What','How','Where','A','選択肢が限られている場合は which。'],
+['grammar','The project was delayed ＿ the heavy rain.','due to','because','although','so that','A','due to + 名詞 = 〜のために。because の後は 主語 + 動詞。'],
+['grammar','I\'d rather ＿ at home tonight.','stay','to stay','staying','stayed','A','would rather + 動詞原形。'],
+['grammar','Hardly ＿ the office when the phone rang.','had I left','I had left','I left','did I leave','A','否定語 hardly が文頭 → 倒置。Hardly had S + 過去分詞 when ...'],
+['grammar','Please let me ＿ if you have any questions.','know','to know','knowing','known','A','let + 目的語 + 動詞原形。'],
+['expressions','会議を1時間遅らせたい。自然な言い方は？','Could we push the meeting back by an hour?','Could we push the meeting up by an hour?','Can we meeting late one hour?','Please meeting one hour later.','A','push back = 遅らせる。push up / move up = 早める。'],
+['expressions','メールの締めで「ご検討よろしくお願いします」に近い表現は？','Thank you for your consideration.','Thank you for your thinking.','Please consider well.','I hope your consideration.','A','Thank you for your consideration. が定番。'],
+['expressions','「添付ファイルをご確認ください」','Please find the attached file.','Please look the attachment file.','Please confirm attach.','Attached is checking.','A','Please find the attached file. / Please see the attachment.'],
+['expressions','「お手数をおかけしてすみません」','Sorry for the trouble.','Sorry for your hard.','Excuse my trouble to you.','I am sorry to bother.','A','Sorry for the trouble. / Sorry to bother you.'],
+['expressions','「念のため確認ですが」','Just to confirm,','Just for sure,','For your confirm,','To make confirm,','A','Just to confirm, ... / Just to make sure, ...'],
+['expressions','「その件は私が担当します」','I\'ll take care of it.','I\'ll take charge it.','I\'ll be charge of it.','I\'m taking it over for me.','A','take care of = 対応する・引き受ける。'],
+['expressions','「少々お待ちください」(電話)','Could you hold on a moment?','Please wait a minute, OK?','Wait, please.','Hold your phone.','A','hold on / hold the line = 電話を切らずに待つ。'],
+['expressions','「折り返しご連絡します」','I\'ll get back to you.','I\'ll return to you.','I\'ll back you.','I\'ll call back to you.','A','get back to someone = 折り返し連絡する。'],
+['expressions','「概ね賛成ですが、1点懸念があります」','I generally agree, but I have one concern.','I agree almost, but one worry.','I\'m agree roughly, but one point.','Generally I\'m agreeing, but I worry one.','A','generally agree / have a concern が自然。'],
+['expressions','「進捗はいかがですか」','How is it coming along?','How is it going on?','How about the progress?','How is your advance?','A','How is it coming along? / How\'s the progress?'],
+['expressions','「来週の都合はいかがですか」','Would next week work for you?','Is next week convenient to you?','How is your next week?','Can next week be OK?','A','Does/Would ... work for you? = 都合はどうですか。'],
+['expressions','「要点をまとめると」','To sum up,','To make summary,','To the point,','For summarize,','A','To sum up, / In summary, / In short,'],
+['expressions','「ご不明な点があればお知らせください」','Please let me know if you have any questions.','Please tell me if you don\'t understand.','If you have unclear, please say.','Please inform me when questions.','A','定番。Feel free to reach out if you have any questions. も可。'],
+['expressions','「ざっくりした見積もりでいいので」','A rough estimate would be fine.','A rough estimation is enough, so.','Just approximately estimate OK.','Please estimate roughly, fine.','A','rough estimate = 概算。ballpark figure も同義。'],
+['expressions','「締め切りを延ばしてもらえませんか」','Could we extend the deadline?','Could we longer the deadline?','Can the deadline be late?','Please make deadline more.','A','extend the deadline = 締め切りを延ばす。'],
+['expressions','「その点は後ほど改めて」','Let\'s come back to that later.','Let\'s return that point after.','We will later that point.','That point is later again.','A','come back to = 後で戻る・改めて扱う。'],
+['reading','Subject: Server maintenance\n"The server will be unavailable from 10 p.m. to 2 a.m. on Saturday. Please save your work before then. If you need access during this time, contact IT by Friday noon." アクセスが必要な場合、いつまでに連絡する？','金曜の正午まで','土曜の22時まで','日曜の午前2時まで','金曜の夜まで','A','contact IT by Friday noon = 金曜正午までに。'],
+['reading','Subject: Server maintenance\n"The server will be unavailable from 10 p.m. to 2 a.m. on Saturday. Please save your work before then. If you need access during this time, contact IT by Friday noon." サーバーが使えない時間は？','土曜22時〜日曜2時','金曜22時〜土曜2時','土曜10時〜14時','土曜2時〜10時','A','10 p.m. to 2 a.m. on Saturday = 土曜22時から(翌)2時。'],
+['reading','"Thank you for your order. Your package has been shipped and should arrive within 3–5 business days. You can track it using the number below. If it does not arrive by June 20, please contact us." 荷物が届かなかった場合、いつ以降に連絡する？','6月20日を過ぎたら','3日後','5日後','発送された日','A','If it does not arrive by June 20 = 6月20日までに届かなければ。'],
+['reading','"We regret to inform you that the position has been filled. However, we will keep your resume on file and contact you if a suitable opening arises." この手紙の主な内容は？','不採用だが履歴書は保管する','採用が決まった','面接の案内','求人の募集','A','the position has been filled = 採用枠は埋まった。keep your resume on file = 履歴書を保管する。'],
+['reading','"All employees are required to complete the security training by the end of this month. The training takes about 40 minutes and can be done online. Those who have already completed it this year do not need to take it again." 今年すでに受講した人は？','再受講は不要','再受講が必要','40分の短縮版を受ける','上司に報告する','A','do not need to take it again = 再度受ける必要はない。'],
+['reading','"Due to rising material costs, our prices will increase by 5% starting April 1. Orders placed before March 31 will be charged at the current price." 3月31日までの注文の価格は？','現在の価格','5%増','5%引き','未定','A','charged at the current price = 現行価格で請求。'],
+['reading','"Hi Ken, I\'ve reviewed the draft. Overall it looks good, but the figures in Table 2 don\'t match the summary. Could you double-check them and send me a revised version by Thursday? Thanks, Anna" Annaが頼んでいることは？','表2の数字を確認して木曜までに修正版を送る','要約を書き直す','木曜に会議をする','表2を削除する','A','double-check the figures / send a revised version by Thursday。'],
+['reading','"The new parking rules take effect next Monday. Visitors must register their vehicles at reception. Employees without a permit will be asked to use the public lot across the street." 許可証のない従業員はどうする？','向かいの公共駐車場を使う','受付で登録する','月曜まで待つ','駐車できない','A','use the public lot across the street = 向かいの公共駐車場を使う。']
+];
 // ==================== Utility ====================
 function escapeHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function escapeAttr(s){return String(s==null?'':s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
@@ -483,13 +572,13 @@ function updateSetupBtn(){var b=document.getElementById('setup-confirm-btn');b.d
 async function confirmSetup(){
   var b=document.getElementById('setup-confirm-btn');b.disabled=true;b.textContent='設定中…';
   try{
-    var ssBody={properties:{title:'Choreia N4 - '+currentUser.domain},sheets:SHEET_DEFS.map(function(s){return {properties:{title:s.title,gridProperties:{frozenRowCount:1}}};})};
+    var ssBody={properties:{title:'Choreia Learn - '+currentUser.domain},sheets:SHEET_DEFS.map(function(s){return {properties:{title:s.title,gridProperties:{frozenRowCount:1}}};})};
     var ss=await apiFetch('https://sheets.googleapis.com/v4/spreadsheets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ssBody)});
     var ssId=ss.spreadsheetId;
     var fileInfo=await apiFetch('https://www.googleapis.com/drive/v3/files/'+ssId+'?fields=parents&supportsAllDrives=true');
     await authFetch('https://www.googleapis.com/drive/v3/files/'+ssId+'?addParents='+setupFolderId+'&removeParents='+(fileInfo.parents||[]).join(',')+'&supportsAllDrives=true',{method:'PATCH',headers:{'Content-Type':'application/json'},body:'{}'});
     var headerData=SHEET_DEFS.map(function(s){return {range:s.title+'!A1',values:[s.headers]};});
-    var seedRows=SEED.map(function(r,i){return ['Q-'+pad(i+1).padStart(4,'0'),r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],'yes'];});
+    var seedRows=seedRowsFor(['jp','en'],0);
     headerData.push({range:'問題!A2',values:seedRows});
     await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+ssId+'/values:batchUpdate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({valueInputOption:'RAW',data:headerData})});
     var cfg={domain:currentUser.domain,admin:currentUser.email,admins:[currentUser.email],adminName:currentUser.name,folderId:setupFolderId,folderName:setupFolderName,driveId:setupDriveId,driveName:setupDriveName,spreadsheetId:ssId,createdAt:new Date().toISOString()};
@@ -498,9 +587,29 @@ async function confirmSetup(){
     var r=await authFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true',{method:'POST',body:f});
     if(!r.ok)throw new Error('config save failed');
     var fl=await r.json();orgConfig=cfg;orgConfig.configFileId=fl.id;saveCachedConfig();
-    showToast('セットアップ完了。問題'+seedRows.length+'問を「問題」シートに書き込みました');
+    showToast('セットアップ完了。問題'+seedRows.length+'問(日本語N4+英語)を「問題」シートに書き込みました');
     await loadAllData();showMainView();
   }catch(e){showToast('セットアップに失敗しました: '+e.message);b.disabled=false;updateSetupBtn();console.error(e);}
+}
+
+function seedRowsFor(courses,startN){var rows=[],n=startN;courses.forEach(function(c){COURSES[c].seed().forEach(function(r){n++;rows.push([c.toUpperCase()+'-'+pad(n).padStart(4,'0'),r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],'yes',c]);});});return rows;}
+async function addMissingSeeds(){
+  var missing=Object.keys(COURSES).filter(function(c){return !questions.some(function(q){return q.course===c;});});
+  if(!missing.length){showToast('すべてのコースに問題があります');return;}
+  if(!confirm('問題が無いコース('+missing.join(', ')+')に初期問題を追加します。よろしいですか？'))return;
+  try{
+    var rows=seedRowsFor(missing,questions.length?1000:0);
+    await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+getSheetId()+'/values/'+encodeURIComponent('問題!A:ZZ')+':append?valueInputOption=RAW&insertDataOption=INSERT_ROWS',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:rows})});
+    showToast(rows.length+'問を追加しました');await loadAllDataSafe();render();
+  }catch(e){showToast('追加に失敗しました: '+e.message);console.error(e);}
+}
+async function ensureCourseColumns(){
+  try{var r=await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+getSheetId()+'/values:batchGet?ranges='+encodeURIComponent('問題!K1')+'&ranges='+encodeURIComponent('回答ログ!K1'));
+    var vr=r.valueRanges||[];var data=[];
+    if(!(vr[0]&&vr[0].values&&vr[0].values[0]&&vr[0].values[0][0]))data.push({range:'問題!K1',values:[['コース(jp/en)']]});
+    if(!(vr[1]&&vr[1].values&&vr[1].values[0]&&vr[1].values[0][0]))data.push({range:'回答ログ!K1',values:[['コース']]});
+    if(data.length)await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+getSheetId()+'/values:batchUpdate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({valueInputOption:'RAW',data:data})});
+  }catch(e){console.error('ensureCourseColumns',e);}
 }
 
 // ==================== Sheets I/O ====================
@@ -514,8 +623,9 @@ async function loadAllData(){
   var ranges=SHEET_DEFS.map(function(s){return 'ranges='+encodeURIComponent(s.title+'!A2:'+colLetter(s.fields.length)+'20000');}).join('&');
   var data=await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+id+'/values:batchGet?'+ranges);
   var vr=data.valueRanges||[];
-  questions=parseRows(vr[0]&&vr[0].values,Q_FIELDS).filter(function(q){return String(q.active||'yes').toLowerCase()!=='no'&&q.q&&q.a&&q.b;});
-  logs=parseRows(vr[1]&&vr[1].values,LOG_FIELDS);
+  questions=parseRows(vr[0]&&vr[0].values,Q_FIELDS).filter(function(q){return String(q.active||'yes').toLowerCase()!=='no'&&q.q&&q.a&&q.b;});questions.forEach(function(q){q.course=(q.course||'jp').toLowerCase();});
+  logs=parseRows(vr[1]&&vr[1].values,LOG_FIELDS);logs.forEach(function(l){l.course=(l.course||'jp').toLowerCase();});
+  ensureCourseColumns();
   sheetSettings={};parseRows(vr[2]&&vr[2].values,SETTING_FIELDS).forEach(function(r){sheetSettings[r.key]=r.value;});
   dataLoadError=null;
 }
@@ -533,7 +643,7 @@ function isAdmin(){if(!orgConfig)return false;return (orgConfig.admins||[orgConf
 function showMainView(){showView('main');document.getElementById('btn-admin').style.display=isAdmin()?'':'none';if(!viewEmail)viewEmail=currentUser.email;render();}
 function setTab(t){tab=t;render();}
 function render(){
-  var tabs=[{id:'study',l:'Study'},{id:'progress',l:'Progress'}];
+  var tabs=[{id:'study',l:T('study')},{id:'progress',l:T('progress')}];
   if(isAdmin())tabs.push({id:'admin',l:'管理'});
   document.getElementById('tabs').innerHTML=tabs.map(function(t){return '<button class="'+(tab===t.id?'on':'')+'" onclick="setTab(\''+t.id+'\')">'+t.l+'</button>';}).join('');
   var m=document.getElementById('main');
@@ -545,30 +655,34 @@ function render(){
 async function reload(){showToast('Reloading…');await loadAllDataSafe();render();}
 
 // ==================== Study ====================
-function myLogs(email){email=(email||currentUser.email).toLowerCase();return logs.filter(function(l){return (l.email||'').toLowerCase()===email;});}
+function myLogs(email){email=(email||currentUser.email).toLowerCase();return logs.filter(function(l){return (l.email||'').toLowerCase()===email&&l.course===course;});}
+function courseQs(){return questions.filter(function(q){return q.course===course;});}
+function setCourse(c){if(!COURSES[c])return;course=c;studyCat='all';try{localStorage.setItem(COURSE_KEY,c);}catch(e){}render();}
+function courseSwitch(){return '<div class="seg" style="margin-bottom:14px">'+Object.keys(COURSES).map(function(c){return '<button class="'+(course===c?'on':'')+'" onclick="setCourse(\''+c+'\')">'+COURSES[c].label+' <small style="opacity:.7">'+COURSES[c].sub+'</small></button>';}).join('')+'</div>';}
 function renderStudyHome(){
   var mine=myLogs();var today=todayISO();var todayN=mine.filter(function(l){return (l.at||'').slice(0,10)===today;}).length;
-  var h='<h2>Study</h2><p class="viewdesc">Pick a category and the number of questions. Each answer and its time are saved.</p>';
+  var qs=courseQs();
+  var h='<h2>'+T('study')+'</h2>'+courseSwitch()+'<p class="viewdesc">'+T('pick')+'</p>';
   h+='<div class="catgrid">';
-  var all={id:'all',label:'All categories',sub:'ぜんぶ'};
-  [all].concat(CATS).forEach(function(c){var n=c.id==='all'?questions.length:questions.filter(function(q){return q.cat===c.id;}).length;h+='<button class="catbtn '+(studyCat===c.id?'on':'')+'" onclick="studyCat=\''+c.id+'\';render()"><b>'+c.label+'</b><small>'+c.sub+' · '+n+' questions</small></button>';});
+  var all={id:'all',label:T('all'),sub:T('allsub')};
+  [all].concat(COURSES[course].cats).forEach(function(c){var n=c.id==='all'?qs.length:qs.filter(function(q){return q.cat===c.id;}).length;h+='<button class="catbtn '+(studyCat===c.id?'on':'')+'" onclick="studyCat=\''+c.id+'\';render()"><b>'+c.label+'</b><small>'+c.sub+' · '+n+' '+T('questions')+'</small></button>';});
   h+='</div>';
-  h+='<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span>Questions:</span><div class="seg">'+[5,10,20].map(function(n){return '<button class="'+(studyCount===n?'on':'')+'" onclick="studyCount='+n+';render()">'+n+'</button>';}).join('')+'</div><span class="spacer"></span><button class="btn" onclick="startQuiz()">Start ▶</button></div>';
-  h+='<p class="hint" style="margin-top:14px">Today: '+todayN+' answers · Total: '+mine.length+' answers</p>';
-  if(!questions.length)h+='<div class="emptybox">No questions yet. Ask the admin to fill the 問題 sheet.</div>';
+  h+='<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span>'+T('nq')+'</span><div class="seg">'+[5,10,20].map(function(n){return '<button class="'+(studyCount===n?'on':'')+'" onclick="studyCount='+n+';render()">'+n+'</button>';}).join('')+'</div><span class="spacer"></span><button class="btn" onclick="startQuiz()">'+T('start')+'</button></div>';
+  h+='<p class="hint" style="margin-top:14px">'+T('today')+': '+todayN+' '+T('answers')+' · '+T('total')+': '+mine.length+' '+T('answers')+'</p>';
+  if(!qs.length)h+='<div class="emptybox">'+T('noq')+'</div>';
   return h;
 }
 function pickQuestions(cat,n){
-  var pool=questions.filter(function(q){return cat==='all'||q.cat===cat;});
+  var pool=courseQs().filter(function(q){return cat==='all'||q.cat===cat;});
   var last={},cnt={};myLogs().forEach(function(l){last[l.qid]=l.correct==='1';cnt[l.qid]=(cnt[l.qid]||0)+1;});
-  var items=pool.map(function(q){var w=last[q.id]===undefined?3:(last[q.id]?1:4);return {q:q,w:w*(0.5+Math.random())};});
+  var items=pool.map(function(q){var w=last[q.qid===undefined?q.id:q.id]===undefined?3:(last[q.id]?1:4);return {q:q,w:w*(0.5+Math.random())};});
   items.sort(function(a,b){return b.w-a.w;});
   return items.slice(0,n).map(function(x){return x.q;});
 }
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function startQuiz(){
   var qs=pickQuestions(studyCat,studyCount);
-  if(!qs.length){showToast('No questions in this category');return;}
+  if(!qs.length){showToast(T('nocat'));return;}
   quiz={session:'S'+Date.now().toString(36),cat:studyCat,i:0,startedAt:Date.now(),qStart:0,items:qs.map(function(q){
     var opts=[{letter:'A',text:q.a},{letter:'B',text:q.b},{letter:'C',text:q.c},{letter:'D',text:q.d}].filter(function(o){return o.text;});
     return {q:q,opts:shuffle(opts),choice:null,correct:null,sec:null};
@@ -584,9 +698,9 @@ function renderQuiz(){
   it.opts.forEach(function(o,k){var cls='opt';if(it.choice!==null){if(o.letter===q.ans.toUpperCase())cls+=' right';else if(o.letter===it.choice)cls+=' wrong';}
     h+='<button class="'+cls+'" '+(it.choice!==null?'disabled':'')+' onclick="answer(\''+o.letter+'\')"><span class="k">'+(k+1)+'</span><span>'+escapeHtml(o.text)+'</span></button>';});
   h+='</div>';
-  if(it.choice!==null){h+='<div class="exp '+(it.correct?'ok':'bad')+'"><b>'+(it.correct?'Correct!':'Not quite.')+'</b> '+(it.sec)+'s'+(q.exp?' — '+escapeHtml(q.exp):'')+'</div>';
-    h+='<div class="acts" style="margin-top:14px;text-align:right"><button class="btn" onclick="nextQ()">'+(quiz.i+1<n?'Next ▶':'See results')+'</button></div>';}
-  h+='</div><p class="hint" style="text-align:center;margin-top:12px"><a onclick="quitQuiz()" style="cursor:pointer">Quit</a></p>';
+  if(it.choice!==null){h+='<div class="exp '+(it.correct?'ok':'bad')+'"><b>'+(it.correct?T('correct'):T('wrong'))+'</b> '+(it.sec)+'s'+(q.exp?' — '+escapeHtml(q.exp):'')+'</div>';
+    h+='<div class="acts" style="margin-top:14px;text-align:right"><button class="btn" onclick="nextQ()">'+(quiz.i+1<n?T('next'):T('results'))+'</button></div>';}
+  h+='</div><p class="hint" style="text-align:center;margin-top:12px"><a onclick="quitQuiz()" style="cursor:pointer">'+T('quit')+'</a></p>';
   return h;
 }
 function answer(letter){
@@ -594,19 +708,19 @@ function answer(letter){
   clearInterval(_timerIv);
   it.choice=letter;it.sec=Math.round((Date.now()-quiz.qStart)/100)/10;it.correct=(letter===String(it.q.ans||'A').toUpperCase());
   var chosen='';it.opts.forEach(function(o){if(o.letter===letter)chosen=o.text;});
-  queueLog({at:nowISO(),email:currentUser.email,name:currentUser.name,session:quiz.session,qid:it.q.id,cat:it.q.cat,q:it.q.q,choice:chosen,correct:it.correct?'1':'0',sec:String(it.sec)});
+  queueLog({at:nowISO(),email:currentUser.email,name:currentUser.name,session:quiz.session,qid:it.q.id,cat:it.q.cat,q:it.q.q,choice:chosen,correct:it.correct?'1':'0',sec:String(it.sec),course:course});
   render();
 }
 function nextQ(){if(quiz.i+1<quiz.items.length){quiz.i++;render();}else{quiz.done=true;document.getElementById('main').innerHTML=renderResult();}}
 function quitQuiz(){clearInterval(_timerIv);quiz=null;render();}
 function renderResult(){
   var n=quiz.items.length,c=quiz.items.filter(function(x){return x.correct;}).length;var secs=quiz.items.reduce(function(s,x){return s+(x.sec||0);},0);
-  var h='<div class="qcard" style="text-align:center"><div class="res-big">'+c+' / '+n+'</div><p>'+Math.round(100*c/n)+'% correct · '+secs.toFixed(1)+'s total · '+(secs/n).toFixed(1)+'s per question</p>';
-  h+='<div class="tablewrap" style="text-align:left"><table><tr><th>#</th><th>Question</th><th>Your answer</th><th class="c">Result</th><th class="c">Time</th></tr>';
+  var h='<div class="qcard" style="text-align:center"><div class="res-big">'+c+' / '+n+'</div><p>'+T('pct')+' '+Math.round(100*c/n)+'% · '+T('totaltime')+' '+secs.toFixed(1)+'s · '+T('perq')+' '+(secs/n).toFixed(1)+'s</p>';
+  h+='<div class="tablewrap" style="text-align:left"><table><tr><th>#</th><th>'+T('q')+'</th><th>'+T('your')+'</th><th class="c">'+T('result')+'</th><th class="c">'+T('time')+'</th></tr>';
   quiz.items.forEach(function(it,i){var chosen='';it.opts.forEach(function(o){if(o.letter===it.choice)chosen=o.text;});var right='';it.opts.forEach(function(o){if(o.letter===String(it.q.ans).toUpperCase())right=o.text;});
     h+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(it.q.q)+'</td><td>'+escapeHtml(chosen)+(it.correct?'':' <span class="hint">(→ '+escapeHtml(right)+')</span>')+'</td><td class="c">'+(it.correct?'<span class="badge b-ok">○</span>':'<span class="badge b-bad">×</span>')+'</td><td class="c mono">'+it.sec+'s</td></tr>';});
-  h+='</table></div><div class="acts" style="margin-top:16px;justify-content:center"><button class="btn" onclick="quitQuiz()">Study again</button> <button class="btn ghost" onclick="quiz=null;setTab(\'progress\')">Progress</button></div></div>';
-  if(pendingLogs.length)h+='<p class="hint" style="text-align:center">'+pendingLogs.length+' answers not yet saved. <a onclick="flushLogs().then(render)" style="cursor:pointer">Retry</a></p>';
+  h+='</table></div><div class="acts" style="margin-top:16px;justify-content:center"><button class="btn" onclick="quitQuiz()">'+T('again')+'</button> <button class="btn ghost" onclick="quiz=null;setTab(\'progress\')">'+T('progress')+'</button></div></div>';
+  if(pendingLogs.length)h+='<p class="hint" style="text-align:center">'+pendingLogs.length+' '+T('unsaved')+' <a onclick="flushLogs().then(render)" style="cursor:pointer">'+T('retry')+'</a></p>';
   return h;
 }
 
@@ -614,34 +728,34 @@ function renderResult(){
 function stats(arr){var n=arr.length,c=0,s=0;arr.forEach(function(l){if(l.correct==='1')c++;s+=parseFloat(l.sec)||0;});return {n:n,c:c,acc:n?Math.round(100*c/n):0,avg:n?(s/n):0};}
 function renderProgress(){
   var who=viewEmail||currentUser.email;var mine=myLogs(who);
-  var h='<h2>Progress</h2>';
+  var h='<h2>'+T('progress')+'</h2>'+courseSwitch();
   if(isAdmin()){var emails={};logs.forEach(function(l){if(l.email)emails[l.email]=l.name||l.email;});var keys=Object.keys(emails);if(currentUser.email&&!emails[currentUser.email])keys.push(currentUser.email);
-    h+='<p>Learner: <select onchange="viewEmail=this.value;render()">'+keys.map(function(e){return '<option value="'+escapeAttr(e)+'" '+(e===who?'selected':'')+'>'+escapeHtml(emails[e]||e)+' ('+escapeHtml(e)+')</option>';}).join('')+'</select></p>';}
-  if(!mine.length)return h+'<div class="emptybox">No answers yet.</div>';
+    h+='<p>'+T('learner')+': <select onchange="viewEmail=this.value;render()">'+keys.map(function(e){return '<option value="'+escapeAttr(e)+'" '+(e===who?'selected':'')+'>'+escapeHtml(emails[e]||e)+' ('+escapeHtml(e)+')</option>';}).join('')+'</select></p>';}
+  if(!mine.length)return h+'<div class="emptybox">'+T('none')+'</div>';
   var all=stats(mine);var sessions={},days={};mine.forEach(function(l){sessions[l.session]=sessions[l.session]||[];sessions[l.session].push(l);days[(l.at||'').slice(0,10)]=1;});
-  h+='<div class="kpis"><div class="kpi"><div class="n">'+all.n+'</div><div class="l">answers</div></div><div class="kpi '+(all.acc>=80?'good':'')+'"><div class="n">'+all.acc+'%</div><div class="l">accuracy</div></div><div class="kpi"><div class="n">'+all.avg.toFixed(1)+'s</div><div class="l">avg time / question</div></div><div class="kpi"><div class="n">'+Object.keys(days).length+'</div><div class="l">days studied</div></div></div>';
-  h+='<h3>By category</h3><div class="tablewrap"><table><tr><th>Category</th><th class="c">Answers</th><th class="c">Accuracy</th><th></th><th class="c">Avg time</th></tr>';
-  CATS.forEach(function(c){var s=stats(mine.filter(function(l){return l.cat===c.id;}));if(!s.n)return;h+='<tr><td>'+c.label+'</td><td class="c">'+s.n+'</td><td class="c">'+s.acc+'%</td><td><div class="bar2"><i style="width:'+s.acc+'%"></i></div></td><td class="c mono">'+s.avg.toFixed(1)+'s</td></tr>';});
+  h+='<div class="kpis"><div class="kpi"><div class="n">'+all.n+'</div><div class="l">'+T('answers')+'</div></div><div class="kpi '+(all.acc>=80?'good':'')+'"><div class="n">'+all.acc+'%</div><div class="l">'+T('acc')+'</div></div><div class="kpi"><div class="n">'+all.avg.toFixed(1)+'s</div><div class="l">'+T('avg')+'</div></div><div class="kpi"><div class="n">'+Object.keys(days).length+'</div><div class="l">'+T('days')+'</div></div></div>';
+  h+='<h3>'+T('bycat')+'</h3><div class="tablewrap"><table><tr><th>'+T('category')+'</th><th class="c">'+T('answers')+'</th><th class="c">'+T('acc')+'</th><th></th><th class="c">'+T('avg')+'</th></tr>';
+  COURSES[course].cats.forEach(function(c){var s=stats(mine.filter(function(l){return l.cat===c.id;}));if(!s.n)return;h+='<tr><td>'+c.label+'</td><td class="c">'+s.n+'</td><td class="c">'+s.acc+'%</td><td><div class="bar2"><i style="width:'+s.acc+'%"></i></div></td><td class="c mono">'+s.avg.toFixed(1)+'s</td></tr>';});
   h+='</table></div>';
   var sk=Object.keys(sessions).sort(function(a,b){return sessions[b][0].at<sessions[a][0].at?-1:1;}).slice(0,15);
-  h+='<h3>Recent sessions</h3><div class="tablewrap"><table><tr><th>Date</th><th>Category</th><th class="c">Score</th><th class="c">Avg time</th></tr>';
-  sk.forEach(function(k){var a=sessions[k];var s=stats(a);var cats={};a.forEach(function(l){cats[l.cat]=1;});var ck=Object.keys(cats);h+='<tr><td class="mono">'+escapeHtml((a[0].at||'').slice(0,16).replace('T',' '))+'</td><td>'+(ck.length>1?'Mixed':catLabel(ck[0]))+'</td><td class="c">'+s.c+' / '+s.n+'</td><td class="c mono">'+s.avg.toFixed(1)+'s</td></tr>';});
+  h+='<h3>'+T('sessions')+'</h3><div class="tablewrap"><table><tr><th>'+T('date')+'</th><th>'+T('category')+'</th><th class="c">'+T('score')+'</th><th class="c">'+T('avg')+'</th></tr>';
+  sk.forEach(function(k){var a=sessions[k];var s=stats(a);var cats={};a.forEach(function(l){cats[l.cat]=1;});var ck=Object.keys(cats);h+='<tr><td class="mono">'+escapeHtml((a[0].at||'').slice(0,16).replace('T',' '))+'</td><td>'+(ck.length>1?T('mixed'):catLabel(ck[0]))+'</td><td class="c">'+s.c+' / '+s.n+'</td><td class="c mono">'+s.avg.toFixed(1)+'s</td></tr>';});
   h+='</table></div>';
   var per={};mine.forEach(function(l){var p=per[l.qid]=per[l.qid]||{q:l.q,cat:l.cat,n:0,c:0,last:''};p.n++;if(l.correct==='1')p.c++;p.last=l.correct;});
   var weak=Object.keys(per).map(function(k){return per[k];}).filter(function(p){return p.last==='0'||(p.n>=2&&p.c/p.n<0.6);}).sort(function(a,b){return (a.c/a.n)-(b.c/b.n);}).slice(0,20);
-  if(weak.length){h+='<h3>Needs review</h3><div class="tablewrap"><table><tr><th>Question</th><th>Category</th><th class="c">Correct</th></tr>';weak.forEach(function(p){h+='<tr><td>'+escapeHtml(p.q)+'</td><td>'+catLabel(p.cat)+'</td><td class="c">'+p.c+' / '+p.n+'</td></tr>';});h+='</table></div>';}
+  if(weak.length){h+='<h3>'+T('review')+'</h3><div class="tablewrap"><table><tr><th>'+T('q')+'</th><th>'+T('category')+'</th><th class="c">'+T('result')+'</th></tr>';weak.forEach(function(p){h+='<tr><td>'+escapeHtml(p.q)+'</td><td>'+catLabel(p.cat)+'</td><td class="c">'+p.c+' / '+p.n+'</td></tr>';});h+='</table></div>';}
   return h;
 }
 
 // ==================== Admin ====================
 function renderAdmin(){
   var h='<h2>管理</h2><div class="card"><div class="cfgrow"><b>スプレッドシート</b><a href="'+sheetUrl()+'" target="_blank" rel="noopener">開く ↗</a></div>';
-  h+='<div class="cfgrow"><b>問題数</b>'+questions.length+'問（「問題」シートに行を足すと増えます。有効列に no で非表示）</div>';
+  h+='<div class="cfgrow"><b>問題数</b>'+Object.keys(COURSES).map(function(c){return COURSES[c].label+' '+questions.filter(function(q){return q.course===c;}).length+'問';}).join(' / ')+'（「問題」シートに行を足すと増えます。有効列に no で非表示） <button class="btn ghost small" onclick="addMissingSeeds()">問題が無いコースに初期問題を追加</button></div>';
   h+='<div class="cfgrow"><b>回答ログ</b>'+logs.length+'件</div>';
   h+='<div class="cfgrow"><b>管理者</b>'+escapeHtml((orgConfig.admins||[orgConfig.admin]).join(', '))+' <button class="btn ghost small" onclick="addAdmin()">追加</button></div>';
   h+='<div class="cfgrow"><b>学習者の追加</b>スプレッドシート（上のリンク）を学習者のGoogleアカウントに「編集者」で共有してください。本人のログインで回答ログが書き込まれます。</div>';
   h+='<div class="cfgrow"><button class="btn ghost small" onclick="reload()">再読み込み</button></div></div>';
-  h+='<div class="note" style="margin-top:14px"><b>分野ID</b> '+CATS.map(function(c){return c.id+'='+c.label;}).join(' / ')+'<br>正解列はA〜Dの文字。画面では選択肢の順番をシャッフルします。</div>';
+  h+='<div class="note" style="margin-top:14px"><b>コース列</b> jp=日本語N4(UI英語) / en=英語(UI日本語)。空欄はjp扱い。<br><b>分野ID</b> '+Object.keys(COURSES).map(function(c){return c+': '+COURSES[c].cats.map(function(x){return x.id+'='+x.label;}).join(', ');}).join(' ／ ')+'<br>正解列はA〜Dの文字。画面では選択肢の順番をシャッフルします。</div>';
   return h;
 }
 async function addAdmin(){var e=prompt('追加する管理者のメールアドレス');if(!e)return;e=e.trim().toLowerCase();if(!e)return;orgConfig.admins=orgConfig.admins||[orgConfig.admin];if(orgConfig.admins.indexOf(e)===-1)orgConfig.admins.push(e);if(await saveConfig()){showToast('追加しました');render();}}
