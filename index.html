@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Choreia N5</title>
+<title>Choreia N4</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -218,15 +218,15 @@ footer{max-width:1140px;margin:0 auto;padding:18px 22px;color:var(--muted);font-
 <body>
 
 <header class="app">
-  <span class="brand"><span class="mark">五</span>Choreia<small>N5</small></span>
+  <span class="brand"><span class="mark">四</span>Choreia<small>N4</small></span>
   <span class="spacer"></span>
   <div id="auth-out"><button class="btn" onclick="handleSignIn()">Sign in with Google</button></div>
   <div id="user-area" style="display:none"><img id="user-avatar" alt=""><span id="user-name"></span><button class="btn ghost small" id="btn-admin" style="display:none" onclick="openAdmin()">⚙ 管理</button><button class="btn ghost small" onclick="handleSignOut()">Sign out</button></div>
 </header>
 
 <div id="view-welcome" class="center">
-  <h1>Choreia N5</h1>
-  <p>JLPT N5 practice: hiragana, katakana, vocabulary, kanji, grammar and reading.<br>Every answer and how long it took are saved, so you and your mentor can see your progress.</p>
+  <h1>Choreia N4</h1>
+  <p>JLPT N4 practice: vocabulary, kanji, grammar and reading.<br>Every answer and how long it took are saved, so you and your mentor can see your progress.</p>
   <button class="btn" onclick="handleSignIn()">Sign in with Google</button>
   <p class="hint">Use your organization account (@m2-labo.jp).</p>
 </div>
@@ -253,7 +253,7 @@ footer{max-width:1140px;margin:0 auto;padding:18px 22px;color:var(--muted);font-
   <main id="main"></main>
 </div>
 
-<footer>Choreia N5 ─ JLPT N5 practice. Answers are saved to your organization's spreadsheet. M2Labo</footer>
+<footer>Choreia N4 ─ JLPT N4 practice. Answers are saved to your organization's spreadsheet. M2Labo</footer>
 
 <div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal"></div></div>
 <div class="toast" id="toast"></div>
@@ -263,9 +263,9 @@ footer{max-width:1140px;margin:0 auto;padding:18px 22px;color:var(--muted);font-
 // ==================== Config ====================
 var CLIENT_ID='595564106580-hsrunbvfacmr23d2jopl462taqilip75.apps.googleusercontent.com';
 var SCOPES='https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets';
-var CONFIG_FILENAME='choreia-n5-config.json';
-var TOKEN_KEY='choreia_n5_token';
-var CONFIG_CACHE_KEY='choreia_n5_config_cache';
+var CONFIG_FILENAME='choreia-n4-config.json';
+var TOKEN_KEY='choreia_n4_token';
+var CONFIG_CACHE_KEY='choreia_n4_config_cache';
 var BLOCKED_DOMAINS=['gmail.com','googlemail.com','yahoo.co.jp','yahoo.com','hotmail.com','outlook.com','outlook.jp','icloud.com','me.com','mac.com','aol.com','protonmail.com','zoho.com','live.com','live.jp','msn.com','nifty.com','biglobe.ne.jp','ocn.ne.jp'];
 
 var Q_FIELDS=['id','cat','q','a','b','c','d','ans','exp','active'];
@@ -277,12 +277,10 @@ var SHEET_DEFS=[
   {title:'設定',fields:SETTING_FIELDS,headers:['キー','値']}
 ];
 var CATS=[
-  {id:'kana',label:'Hiragana',sub:'ひらがな'},
-  {id:'katakana',label:'Katakana',sub:'カタカナ'},
-  {id:'vocab',label:'Vocabulary',sub:'ことば'},
-  {id:'kanji',label:'Kanji',sub:'かんじ'},
-  {id:'grammar',label:'Grammar',sub:'ぶんぽう'},
-  {id:'reading',label:'Reading',sub:'どっかい'}
+  {id:'vocab',label:'Vocabulary',sub:'語彙'},
+  {id:'kanji',label:'Kanji',sub:'漢字'},
+  {id:'grammar',label:'Grammar',sub:'文法'},
+  {id:'reading',label:'Reading',sub:'読解'}
 ];
 function catLabel(id){for(var i=0;i<CATS.length;i++)if(CATS[i].id===id)return CATS[i].label;return id;}
 
@@ -298,82 +296,99 @@ var studyCat='all',studyCount=10;
 // ==================== Seed questions (written to the 問題 sheet on first setup) ====================
 // [category, prompt, A, B, C, D, correct letter, explanation]. Options are shuffled on screen.
 var SEED=[
-['kana','Choose the hiragana for "sakura" (cherry blossom).','さくら','さぐら','そくら','さくろ','A','さ(sa) く(ku) ら(ra).'],
-['kana','Choose the hiragana for "tsuki" (moon).','つき','っき','ちき','つぎ','A','つ(tsu) き(ki). A small っ is not a syllable by itself.'],
-['kana','Choose the hiragana for "gakkou" (school).','がっこう','がこう','かっこう','がっこ','A','The small っ doubles the k, and こう has a long o.'],
-['kana','Choose the hiragana for "kyou" (today).','きょう','きよう','きょお','きゆう','A','Small ょ makes きょ (kyo); long o is written with う.'],
-['kana','Choose the hiragana for "densha" (train).','でんしゃ','でんしや','てんしゃ','でんじゃ','A','で(de) ん(n) しゃ(sha) with a small ゃ.'],
-['kana','Choose the hiragana for "byouin" (hospital).','びょういん','びよういん','ひょういん','びょいん','A','びょ(byo) う(long o) い(i) ん(n).'],
-['kana','Choose the hiragana for "zasshi" (magazine).','ざっし','ざし','さっし','ざっじ','A','ざ(za) small っ し(shi).'],
-['kana','Choose the hiragana for "jitensha" (bicycle).','じてんしゃ','ちてんしゃ','じでんしゃ','じてんしや','A','じ(ji) て(te) ん(n) しゃ(sha).'],
-['katakana','What does コーヒー mean?','coffee','cola','cookie','copy','A','コーヒー = coffee. The ー makes the vowel long.'],
-['katakana','What does テレビ mean?','television','telephone','table','tennis','A','テレビ is short for テレビジョン (television).'],
-['katakana','What does パン mean?','bread','frying pan','pen','fan','A','パン = bread (from Portuguese "pão").'],
-['katakana','What does シャワー mean?','shower','shirt','sugar','sofa','A','シャワー = shower.'],
-['katakana','Choose the katakana for "camera".','カメラ','カナラ','カメナ','ガメラ','A','カ(ka) メ(me) ラ(ra).'],
-['katakana','Choose the katakana for "America".','アメリカ','アナリカ','アメリガ','ヤメリカ','A','ア(a) メ(me) リ(ri) カ(ka).'],
-['katakana','What does エレベーター mean?','elevator','escalator','energy','envelope','A','エレベーター = elevator. Escalator is エスカレーター.'],
-['katakana','What does レストラン mean?','restaurant','rest room','lesson','radio','A','レストラン = restaurant.'],
-['vocab','たべます','to eat','to drink','to sleep','to buy','A','たべます (食べます) = to eat. のみます = to drink.'],
-['vocab','おおきい','big','small','new','old','A','おおきい (大きい) = big. ちいさい = small.'],
-['vocab','みず','water','fire','tree','mountain','A','みず (水) = water.'],
-['vocab','きのう','yesterday','today','tomorrow','now','A','きのう = yesterday, きょう = today, あした = tomorrow.'],
-['vocab','でんわ','telephone','train','electricity','station','A','でんわ (電話) = telephone. でんしゃ = train.'],
-['vocab','やすい','cheap','expensive','easy','delicious','A','やすい (安い) = cheap. たかい = expensive.'],
-['vocab','ともだち','friend','family','teacher','student','A','ともだち (友達) = friend.'],
-['vocab','かいます','to buy','to write','to return','to wait','A','かいます (買います) = to buy. かきます = to write.'],
-['vocab','あたらしい','new','old','hot','cold','A','あたらしい (新しい) = new. ふるい = old.'],
-['vocab','えき','station','shop','school','house','A','えき (駅) = station. みせ = shop.'],
-['vocab','ひだり','left','right','front','back','A','ひだり (左) = left. みぎ = right.'],
-['vocab','おいしい','delicious','expensive','busy','quiet','A','おいしい = delicious.'],
-['vocab','はなします','to speak','to read','to listen','to see','A','はなします (話します) = to speak. よみます = to read.'],
-['vocab','なつ','summer','winter','spring','autumn','A','はる(spring) なつ(summer) あき(autumn) ふゆ(winter).'],
-['vocab','かばん','bag','hat','shoes','umbrella','A','かばん = bag. ぼうし = hat, くつ = shoes, かさ = umbrella.'],
-['vocab','むずかしい','difficult','easy','interesting','boring','A','むずかしい (難しい) = difficult. やさしい = easy.'],
-['kanji','How do you read 学生?','がくせい','がっこう','せんせい','がくしょう','A','学生 = student. 学校 = がっこう (school).'],
-['kanji','How do you read 日本?','にほん','にちほん','ひもと','にっぽ','A','日本 = にほん / にっぽん (Japan).'],
-['kanji','How do you read 先生?','せんせい','せんせ','さきせい','せんじょう','A','先生 = teacher.'],
-['kanji','How do you read 今日?','きょう','こんひ','いまひ','きよう','A','今日 = きょう (today). Special reading.'],
-['kanji','How do you read 電話?','でんわ','でんき','てんわ','でんしゃ','A','電話 = telephone. 電気 = でんき, 電車 = でんしゃ.'],
-['kanji','How do you read 大きい?','おおきい','だいきい','たいきい','おきい','A','大きい = big. 大 is read おお here.'],
-['kanji','How do you read 行きます?','いきます','こうきます','ぎょうきます','きます','A','行きます = to go. 来ます = きます (to come).'],
-['kanji','How do you read 山?','やま','かわ','うみ','そら','A','山 = やま (mountain). 川 = かわ, 海 = うみ, 空 = そら.'],
-['kanji','What does 水 mean?','water','fire','tree','gold','A','水 = water (みず). 火 = fire, 木 = tree, 金 = gold/money.'],
-['kanji','What does 月 mean?','moon / month','sun','star','day','A','月 = moon (つき) or month (がつ/げつ).'],
-['kanji','What does 人 mean?','person','dog','child','woman','A','人 = person (ひと). 子 = child, 女 = woman.'],
-['kanji','What does 車 mean?','car','train','bicycle','road','A','車 = car (くるま). 電車 = train, 自転車 = bicycle.'],
-['kanji','What does 火曜日 mean?','Tuesday','Monday','Wednesday','Friday','A','月火水木金土日 = Mon Tue Wed Thu Fri Sat Sun. 火曜日 = Tuesday.'],
-['kanji','What does 新しい mean?','new','old','big','small','A','新しい = あたらしい (new). 古い = old.'],
-['kanji','How do you read 食べます?','たべます','しょくべます','くべます','たへます','A','食べます = to eat.'],
-['kanji','How do you read 来ます?','きます','らいます','こます','くます','A','来ます = きます (to come). Irregular verb.'],
-['grammar','わたし＿がくせいです。','は','が','を','に','A','は marks the topic: "As for me, I am a student."'],
-['grammar','まいあさ パン＿たべます。','を','は','に','で','A','を marks the object of たべます.'],
-['grammar','がっこう＿いきます。','へ','を','で','と','A','へ (or に) marks the destination of いきます.'],
-['grammar','としょかん＿ほんをよみます。','で','に','を','へ','A','で marks the place where an action happens.'],
-['grammar','これ＿わたしのかばんです。','は','を','で','へ','A','これは = "this is ...".'],
-['grammar','７じ＿おきます。','に','で','を','へ','A','に marks a specific time.'],
-['grammar','ともだち＿えいがをみました。','と','を','が','へ','A','と = "with (someone)".'],
-['grammar','きのう テレビを＿。','みました','みます','みて','みません','A','きのう (yesterday) needs the past form ました.'],
-['grammar','あした、がっこうへ＿。 (I will not go)','いきません','いきませんでした','いきました','いきます','A','Future/present negative = ません.'],
-['grammar','コーヒー＿こうちゃ、どちらがすきですか。','と','や','も','か','A','AとB、どちらが…: "Which do you like, A or B?"'],
-['grammar','つくえのうえ＿ほんがあります。','に','で','を','へ','A','に marks the location of existence with あります/います.'],
-['grammar','すしを＿。 (I want to eat)','たべたいです','たべます','たべました','たべましょう','A','Verb stem + たいです = want to.'],
-['grammar','テレビを＿ながら、ごはんをたべます。','み','みて','みる','みた','A','Verb stem + ながら = while doing.'],
-['grammar','えきまで＿いきますか。 (how)','どうやって','どこ','だれ','いつ','A','どうやって = how. どこ = where, だれ = who, いつ = when.'],
-['grammar','ここで しゃしんを＿ください。 (please do not)','とらないで','とって','とります','とらなくて','A','ないでください = please do not.'],
-['grammar','これは＿ざっしですか。 (whose)','だれの','だれ','どれ','なに','A','だれの = whose.'],
-['grammar','くだものの＿で、りんごがいちばんすきです。','なか','うえ','した','そと','A','Xのなかで〜がいちばん = among X, ... is the most.'],
-['grammar','きょうは あつい＿、まどをあけました。','から','が','でも','のに','A','から = because (reason comes first).'],
-['grammar','Choose the polite past form of さむい (cold).','さむかったです','さむいでした','さむでした','さむくです','A','い-adjective past: い → かったです.'],
-['grammar','へやに だれ＿いません。','も','か','が','は','A','だれも + negative = nobody.'],
-['grammar','まいにち ６じ＿８じまで べんきょうします。','から','に','で','へ','A','から〜まで = from ... to ...'],
-['grammar','わたしは ねこ＿すきです。','が','を','に','で','A','すき takes が, not を.'],
-['grammar','まどを＿ください。 (please open)','あけて','あけって','あけます','あける','A','て-form + ください = please do. あける → あけて.'],
-['grammar','すみません、トイレは＿ですか。 (where)','どこ','どれ','だれ','なに','A','どこ = where.'],
-['reading','「わたしは まいあさ ７じに おきます。パンを たべて、コーヒーを のみます。８じに うちを でます。」 What does the person drink?','coffee','tea','milk','water','A','コーヒーを のみます = drinks coffee.'],
-['reading','「わたしは まいあさ ７じに おきます。パンを たべて、コーヒーを のみます。８じに うちを でます。」 What time does the person leave home?','8:00','7:00','6:00','9:00','A','８じに うちを でます = leaves home at 8.'],
-['reading','「たなかさんは きのう ともだちと えいがを みました。えいがは おもしろかったです。」 Who did Tanaka watch the movie with?','a friend','family','a teacher','alone','A','ともだちと = with a friend.'],
-['reading','「きょうは にちようびです。でも、わたしは かいしゃへ いきます。」 Where is the speaker going?','to the company','to school','home','to the station','A','かいしゃへ いきます = go to the company. でも = but.']
+['vocab','やくそく (約束)','promise / appointment','preparation','experience','explanation','A','約束 = promise, appointment. 約束を守る = keep a promise.'],
+['vocab','じゅんび (準備)','preparation','practice','meeting','cleaning','A','準備する = to prepare.'],
+['vocab','けいけん (経験)','experience','knowledge','opinion','plan','A','経験がある = to have experience.'],
+['vocab','つごう (都合)','convenience / circumstances','promise','schedule','holiday','A','都合がいい/わるい = convenient / inconvenient.'],
+['vocab','えんりょ (遠慮)','reserve / holding back','greeting','apology','hurry','A','遠慮しないでください = Please don\'t hold back.'],
+['vocab','そうだん (相談)','consultation / discussion','explanation','question','answer','A','相談する = to consult, talk over.'],
+['vocab','こしょう (故障)','breakdown (machine)','accident','mistake','traffic jam','A','故障する = to break down.'],
+['vocab','ようじ (用事)','errand / something to do','holiday','meeting','homework','A','用事がある = to have something to do.'],
+['vocab','きょうみ (興味)','interest','hobby','worry','opinion','A','〜に興味がある = to be interested in.'],
+['vocab','るす (留守)','absence from home','sleeping','busy','late','A','留守です = not at home.'],
+['vocab','ちこく (遅刻)','being late','absence','overtime','early leaving','A','遅刻する = to be late.'],
+['vocab','ざんねん (残念)','regrettable / too bad','dangerous','safe','convenient','A','残念です = That\'s too bad.'],
+['vocab','ていねい (丁寧)','polite / careful','rude','fast','simple','A','丁寧な言葉 = polite language.'],
+['vocab','ふくざつ (複雑)','complicated','simple','important','special','A','複雑な問題 = complicated problem. 簡単 = simple.'],
+['vocab','めずらしい (珍しい)','rare / unusual','delicious','difficult','noisy','A','珍しい = rare, unusual.'],
+['vocab','きびしい (厳しい)','strict','kind','quiet','soft','A','厳しい先生 = strict teacher.'],
+['vocab','さびしい (寂しい)','lonely','happy','scary','sleepy','A','寂しい = lonely. こわい = scary, ねむい = sleepy.'],
+['vocab','はずかしい (恥ずかしい)','embarrassed / ashamed','proud','angry','sad','A','恥ずかしい = embarrassing, shy.'],
+['vocab','ねむい (眠い)','sleepy','tired','hungry','thirsty','A','眠い = sleepy. つかれた = tired.'],
+['vocab','とどける (届ける)','to deliver','to receive','to send back','to throw away','A','届ける = deliver. 届く = arrive (intransitive).'],
+['vocab','むかえる (迎える)','to welcome / pick up','to see off','to visit','to invite','A','駅まで迎えに行く = go to the station to pick (someone) up. 見送る = see off.'],
+['vocab','つたえる (伝える)','to convey / tell','to hear','to forget','to remember','A','伝える = tell, pass on (a message).'],
+['vocab','きめる (決める)','to decide','to choose','to change','to continue','A','決める = decide. 決まる = be decided.'],
+['vocab','すてる (捨てる)','to throw away','to pick up','to keep','to find','A','ごみを捨てる = throw away garbage. ひろう = pick up.'],
+['vocab','しらべる (調べる)','to look up / investigate','to teach','to explain','to practice','A','辞書で調べる = look up in a dictionary.'],
+['vocab','なれる (慣れる)','to get used to','to forget','to fail','to prepare','A','日本の生活に慣れる = get used to life in Japan.'],
+['vocab','かたづける (片付ける)','to tidy up','to break','to build','to move','A','部屋を片付ける = tidy the room.'],
+['vocab','まにあう (間に合う)','to be in time','to be late','to hurry','to wait','A','電車に間に合う = make it in time for the train.'],
+['vocab','みつける (見つける)','to find','to look for','to lose','to show','A','見つける = find. 探す = look for. 見つかる = be found.'],
+['vocab','あんぜん (安全)','safe','dangerous','convenient','clean','A','安全 = safe. 危険 = dangerous.'],
+['vocab','しかたがない','It can\'t be helped','That\'s great','Never mind','Hurry up','A','仕方がない = there is no way / it can\'t be helped.'],
+['vocab','こまかい (細かい)','fine / small / detailed','thick','large','rough','A','細かいお金 = small change.'],
+['kanji','How do you read 映画?','えいが','えいかく','うつが','えが','A','映画 = movie.'],
+['kanji','How do you read 料理?','りょうり','りょり','りようり','れいり','A','料理 = cooking, dish.'],
+['kanji','How do you read 質問?','しつもん','しちもん','しつぶん','せつもん','A','質問 = question.'],
+['kanji','How do you read 病院?','びょういん','びょいん','やまいいん','びよういん','A','病院 = hospital. 美容院 = びよういん (hair salon)!'],
+['kanji','How do you read 運転?','うんてん','うんでん','うんころ','はこてん','A','運転する = to drive.'],
+['kanji','How do you read 旅行?','りょこう','たびこう','りょぎょう','りょうこう','A','旅行 = travel.'],
+['kanji','How do you read 世界?','せかい','せいかい','よかい','せけい','A','世界 = world.'],
+['kanji','How do you read 地図?','ちず','じず','ちと','ちづ','A','地図 = map.'],
+['kanji','How do you read 不便?','ふべん','ふびん','ぶべん','ふへん','A','不便 = inconvenient. 便利 = べんり.'],
+['kanji','How do you read 特別?','とくべつ','とくべち','どくべつ','とっべつ','A','特別 = special.'],
+['kanji','How do you read 集める?','あつめる','しゅうめる','つどめる','あづめる','A','集める = to collect. 集まる = to gather.'],
+['kanji','How do you read 急ぐ?','いそぐ','きゅうぐ','はやぐ','いぞぐ','A','急ぐ = to hurry.'],
+['kanji','How do you read 考える?','かんがえる','こうえる','おもえる','かんかえる','A','考える = to think, consider.'],
+['kanji','How do you read 教える?','おしえる','きょうえる','おそえる','おしいる','A','教える = to teach. 習う = ならう (to learn).'],
+['kanji','How do you read 借りる?','かりる','かしる','しゃくりる','かいる','A','借りる = to borrow. 貸す = かす (to lend).'],
+['kanji','How do you read 駅員?','えきいん','えきにん','えきえん','やくいん','A','駅員 = station staff.'],
+['kanji','What does 以上 mean?','or more / that is all','or less','before','after','A','18歳以上 = 18 or older. 以下 = or less.'],
+['kanji','What does 無料 mean?','free of charge','expensive','unlimited','closed','A','無料 = free. 有料 = paid.'],
+['kanji','What does 注意 mean?','attention / caution','intention','opinion','meaning','A','注意する = to be careful, to warn.'],
+['kanji','What does 都合 mean?','convenience','capital','city','total','A','都合 = convenience/circumstances.'],
+['kanji','What does 開始 mean?','start','end','opening (store)','delay','A','開始 = start. 終了 = end.'],
+['kanji','What does 住所 mean?','address','residence permit','neighborhood','place of work','A','住所 = address.'],
+['kanji','What does 産業 mean?','industry','business trip','product','agriculture','A','産業 = industry. 農業 = agriculture.'],
+['kanji','What does 以外 mean?','except / other than','inside','outside','unexpected','A','日曜日以外 = other than Sunday. 意外 = unexpected (different kanji).'],
+['grammar','漢字が＿ことができます。 (can read)','読む','読める','読んで','読み','A','Dictionary form + ことができる = can do.'],
+['grammar','日本語が＿ようになりました。 (became able to speak)','話せる','話す','話して','話した','A','Potential form + ようになる = become able to.'],
+['grammar','雨が＿、試合は中止です。 (if it rains)','降ったら','降って','降ると','降れば','A','〜たら = if/when. (降ると/降れば also exist, but 〜たら is the natural choice before a decision like 中止です.)'],
+['grammar','このボタンを＿、ドアが開きます。 (whenever you press)','押すと','押したら','押せば','押しても','A','〜と = whenever A, B always happens (natural result).'],
+['grammar','時間が＿、京都へ行きたいです。 (if there is time)','あれば','あって','あると','あったら','A','〜ば = conditional. あれば = if there is. (あったら also possible, but ば is the form being tested.)'],
+['grammar','明日は早く＿なければなりません。','起き','起きる','起きて','起きた','A','ない-form stem + なければならない = must. 起きなければなりません.'],
+['grammar','宿題を＿しまいました。 (forgot)','忘れて','忘れる','忘れた','忘れ','A','て-form + しまう = did completely / regrettably.'],
+['grammar','パーティーの前に飲み物を＿おきます。','買って','買う','買った','買い','A','て-form + おく = do in advance.'],
+['grammar','この靴を＿もいいですか。 (may I try on)','はいてみて','はいてみる','はいてみた','はいてみ','A','て-form + みる = try doing. てみてもいいですか = may I try?'],
+['grammar','先生が私に本を＿。 (gave me)','くださいました','あげました','もらいました','やりました','A','くれる/くださる = someone gives to me. くださる is the honorific form.'],
+['grammar','友達に駅まで＿もらいました。 (had a friend send me)','送って','送る','送った','送り','A','て-form + もらう = receive the favor of someone doing.'],
+['grammar','来年、日本へ＿つもりです。','行く','行って','行った','行き','A','Dictionary form + つもり = intend to.'],
+['grammar','山田さんは明日来る＿思います。','と','を','に','が','A','〜と思う = I think that.'],
+['grammar','この本は＿すぎます。 (too difficult)','難し','難しい','難しく','難しくて','A','い-adjective stem + すぎる: 難しい → 難しすぎる.'],
+['grammar','このペンは＿やすいです。 (easy to write)','書き','書く','書いて','書ける','A','Verb stem + やすい = easy to. 〜にくい = hard to.'],
+['grammar','疲れた＿、早く寝たほうがいいですよ。','なら','ので','のに','から','A','〜なら = if that is the case (responding to what was said).'],
+['grammar','雨が降りそう＿。 (looks like it will rain)','です','でした','だった','だろう','A','Verb stem + そうです = looks like / about to.'],
+['grammar','田中さんは来ない＿です。 (I heard)','そう','よう','みたい','らしい','A','Plain form + そうです = hearsay ("I heard that..."). Compare 降りそう (looks like).'],
+['grammar','電車が遅れた＿、会議に遅刻しました。','ので','のに','から','し','A','〜ので = because (polite/objective reason).'],
+['grammar','薬を飲んだ＿、まだ熱があります。','のに','ので','から','し','A','〜のに = although / even though (unexpected result).'],
+['grammar','週末は映画を＿、買い物をしたりします。','見たり','見て','見ると','見たら','A','〜たり〜たりする = do things like A and B.'],
+['grammar','毎日運動する＿にしています。','よう','こと','もの','つもり','A','〜ようにする = make an effort to / make it a habit.'],
+['grammar','今、ご飯を食べている＿です。 (in the middle of)','ところ','つもり','はず','こと','A','〜ているところ = in the middle of doing.'],
+['grammar','彼はもう帰った＿です。 (should have / I\'m sure)','はず','つもり','ところ','ばかり','A','〜はずです = should be / is expected to.'],
+['grammar','明日は雨が降る＿しれません。','かも','だろう','らしい','そう','A','〜かもしれない = might.'],
+['grammar','母は私に部屋を＿。 (made me clean)','掃除させました','掃除しました','掃除されました','掃除できました','A','Causative させる = make/let someone do.'],
+['grammar','私は先生に＿。 (was praised)','ほめられました','ほめました','ほめさせました','ほめていました','A','Passive られる = was done to.'],
+['grammar','社長は何時に＿か。 (honorific: come)','いらっしゃいます','来ます','まいります','うかがいます','A','いらっしゃる = honorific (尊敬語) for 来る/行く/いる. まいる/うかがう are humble (謙譲語).'],
+['grammar','私が資料を＿。 (humble: will show)','お見せします','ご覧になります','見られます','見せられます','A','お + stem + する = humble. ご覧になる is honorific (for the other person).'],
+['grammar','どうして遅れたん＿？','ですか','ますか','でしたか','だか','A','〜んですか = asking for an explanation.'],
+['grammar','寒いので、窓を＿ください。 (keep closed)','閉めておいて','閉めて','閉めてみて','閉めてしまって','A','〜ておく = leave in a state / do in advance.'],
+['reading','「来週の金曜日に会議があります。参加できない人は、水曜日までに田中さんに連絡してください。資料は会議の前日に送ります。」 By when should you contact Tanaka if you cannot attend?','Wednesday','Friday','Thursday','the day before the meeting','A','水曜日までに = by Wednesday.'],
+['reading','「来週の金曜日に会議があります。参加できない人は、水曜日までに田中さんに連絡してください。資料は会議の前日に送ります。」 When will the materials be sent?','Thursday','Wednesday','Friday','Monday','A','会議の前日 = the day before the meeting (Friday) = Thursday.'],
+['reading','「このエレベーターは故障中です。3階へ行く方は、階段をご利用ください。修理は明日の午前中に終わる予定です。」 What should you do to go to the 3rd floor?','use the stairs','wait for the repair','use another elevator','ask the staff','A','階段をご利用ください = please use the stairs.'],
+['reading','「このエレベーターは故障中です。3階へ行く方は、階段をご利用ください。修理は明日の午前中に終わる予定です。」 When is the repair expected to finish?','tomorrow morning','today','tomorrow afternoon','next week','A','明日の午前中 = tomorrow morning.'],
+['reading','「山田さんへ。先に帰ります。机の上に本を置いておきました。読み終わったら、図書館に返しておいてください。鈴木」 What does Suzuki ask Yamada to do?','return the book to the library after reading','buy a book','put the book on the desk','go home early','A','図書館に返しておいてください = please return it to the library.'],
+['reading','「アルバイト募集。時間：午後5時から9時まで。週に3日以上働ける方。経験がなくても大丈夫です。」 Who can apply?','someone who can work 3 or more days a week','only experienced people','only people who can work every day','only people who can work in the morning','A','週に3日以上 = 3 days or more a week. 経験がなくても大丈夫 = no experience needed.']
 ];
 // ==================== Utility ====================
 function escapeHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -470,7 +485,7 @@ function updateSetupBtn(){var b=document.getElementById('setup-confirm-btn');b.d
 async function confirmSetup(){
   var b=document.getElementById('setup-confirm-btn');b.disabled=true;b.textContent='設定中…';
   try{
-    var ssBody={properties:{title:'Choreia N5 - '+currentUser.domain},sheets:SHEET_DEFS.map(function(s){return {properties:{title:s.title,gridProperties:{frozenRowCount:1}}};})};
+    var ssBody={properties:{title:'Choreia N4 - '+currentUser.domain},sheets:SHEET_DEFS.map(function(s){return {properties:{title:s.title,gridProperties:{frozenRowCount:1}}};})};
     var ss=await apiFetch('https://sheets.googleapis.com/v4/spreadsheets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ssBody)});
     var ssId=ss.spreadsheetId;
     var fileInfo=await apiFetch('https://www.googleapis.com/drive/v3/files/'+ssId+'?fields=parents&supportsAllDrives=true');
