@@ -283,8 +283,8 @@ var COURSES={
     {id:'vocab',label:'単語',sub:'Vocabulary'},{id:'grammar',label:'文法',sub:'Grammar'},{id:'expressions',label:'表現',sub:'Expressions'},{id:'reading',label:'読解',sub:'Reading'}]}
 };
 var UI={
-  en:{study:'Study',progress:'Progress',pick:'Pick a category and the number of questions. Each answer and its time are saved.',all:'All categories',allsub:'ぜんぶ',questions:'questions',nq:'Questions:',start:'Start ▶',today:'Today',total:'Total',answers:'answers',noq:'No questions yet. Ask the admin to fill the 問題 sheet.',next:'Next ▶',results:'See results',quit:'Quit',correct:'Correct!',wrong:'Not quite.',pct:'correct',totaltime:'total',perq:'per question',q:'Question',your:'Your answer',result:'Result',time:'Time',again:'Study again',unsaved:'answers not yet saved.',retry:'Retry',learner:'Learner',none:'No answers yet.',acc:'accuracy',avg:'avg time / question',days:'days studied',bycat:'By category',category:'Category',sessions:'Recent sessions',date:'Date',score:'Score',review:'Needs review',mixed:'Mixed',course:'Course',nocat:'No questions in this category'},
-  ja:{study:'学習',progress:'進捗',pick:'分野と問題数を選んでください。回答と回答時間は1問ごとに記録されます。',all:'全分野',allsub:'All',questions:'問',nq:'問題数:',start:'開始 ▶',today:'今日',total:'累計',answers:'問',noq:'問題がまだありません。管理者が「問題」シートに追加してください。',next:'次へ ▶',results:'結果を見る',quit:'中断',correct:'正解！',wrong:'不正解',pct:'正答率',totaltime:'合計',perq:'1問あたり',q:'問題',your:'あなたの回答',result:'正誤',time:'時間',again:'もう一度',unsaved:'件の回答が未保存です。',retry:'再試行',learner:'学習者',none:'まだ回答がありません。',acc:'正答率',avg:'平均回答時間',days:'学習日数',bycat:'分野別',category:'分野',sessions:'最近のセッション',date:'日時',score:'得点',review:'要復習',mixed:'複数',course:'コース',nocat:'この分野の問題がありません'}
+  en:{study:'Study',progress:'Progress',pick:'Pick a category and the number of questions. Each answer and its time are saved.',all:'All categories',allsub:'ぜんぶ',questions:'questions',nq:'Questions:',start:'Start ▶',today:'Today',total:'Total',answers:'answers',noq:'No questions yet. Ask the admin to fill the 問題 sheet.',next:'Next ▶',results:'See results',quit:'Quit',correct:'Correct!',wrong:'Not quite.',pct:'correct',totaltime:'total',perq:'per question',q:'Question',your:'Your answer',result:'Result',time:'Time',again:'Study again',unsaved:'answers not yet saved.',retry:'Retry',learner:'Learner',none:'No answers yet.',acc:'accuracy',avg:'avg time / question',days:'days studied',bycat:'By category',category:'Category',sessions:'Recent sessions',date:'Date',score:'Score',review:'Needs review',mixed:'Mixed',course:'Course',nocat:'No questions in this category',set:'Daily set',setdesc:'20 new questions every day, repeated three times (9:00 / 13:00 / 17:00). Tomorrow moves on to the next 20.',day:'Day',startset:'Start the set ▶',mastered:'Mastered',lastrun:'Last run',prevrun:'Previous run',thisrun:'this run',free:'Free practice',sethist:'Daily set history',slot:'Slot'},
+  ja:{study:'学習',progress:'進捗',pick:'分野と問題数を選んでください。回答と回答時間は1問ごとに記録されます。',all:'全分野',allsub:'All',questions:'問',nq:'問題数:',start:'開始 ▶',today:'今日',total:'累計',answers:'問',noq:'問題がまだありません。管理者が「問題」シートに追加してください。',next:'次へ ▶',results:'結果を見る',quit:'中断',correct:'正解！',wrong:'不正解',pct:'正答率',totaltime:'合計',perq:'1問あたり',q:'問題',your:'あなたの回答',result:'正誤',time:'時間',again:'もう一度',unsaved:'件の回答が未保存です。',retry:'再試行',learner:'学習者',none:'まだ回答がありません。',acc:'正答率',avg:'平均回答時間',days:'学習日数',bycat:'分野別',category:'分野',sessions:'最近のセッション',date:'日時',score:'得点',review:'要復習',mixed:'複数',course:'コース',nocat:'この分野の問題がありません',set:'今日のセット',setdesc:'1日20問を覚えます。同じ20問を9時・13時・17時の3回繰り返し、翌日は次の20問に進みます。',day:'Day',startset:'セットを始める ▶',mastered:'習得済み',lastrun:'前回',prevrun:'前回',thisrun:'今回',free:'自由練習',sethist:'セットの履歴',slot:'回'}
 };
 function T(k){return (UI[COURSES[course].ui]||UI.en)[k]||k;}
 function catLabel(id){var cs=COURSES[course].cats;for(var i=0;i<cs.length;i++)if(cs[i].id===id)return cs[i].label;return id;}
@@ -659,10 +659,39 @@ function myLogs(email){email=(email||currentUser.email).toLowerCase();return log
 function courseQs(){return questions.filter(function(q){return q.course===course;});}
 function setCourse(c){if(!COURSES[c])return;course=c;studyCat='all';try{localStorage.setItem(COURSE_KEY,c);}catch(e){}render();}
 function courseSwitch(){return '<div class="seg" style="margin-bottom:14px">'+Object.keys(COURSES).map(function(c){return '<button class="'+(course===c?'on':'')+'" onclick="setCourse(\''+c+'\')">'+COURSES[c].label+' <small style="opacity:.7">'+COURSES[c].sub+'</small></button>';}).join('')+'</div>';}
+// ==================== Fixed set (same N questions, 3 times a day) ====================
+var SLOTS=[9,13,17];
+function setSize(){var n=parseInt(sheetSettings.set_size,10);return n>0?n:20;}
+function masteryOf(email){ // qid -> {streak, n, c}
+  var m={};myLogs(email).forEach(function(l){var x=m[l.qid]=m[l.qid]||{streak:0,n:0,c:0};x.n++;if(l.correct==='1'){x.c++;x.streak++;}else x.streak=0;});return m;}
+function isMastered(x){return !!x&&x.streak>=3;}
+function dayIndex(email){ // 今日より前に「セット」をやった日数 = 今日は何日目か(0始まり)
+  var t=todayISO(),d={};setSessions(email).forEach(function(a){var day=(a[0].at||'').slice(0,10);if(day&&day<t)d[day]=1;});return Object.keys(d).length;}
+function currentSet(email){var qs=courseQs();var n=setSize();if(!qs.length)return [];var start=(dayIndex(email)*n)%qs.length;var out=qs.slice(start,start+n);if(out.length<n)out=out.concat(qs.slice(0,n-out.length));return out;}
+function setRangeLabel(email){var qs=courseQs();var n=setSize();if(!qs.length)return '';var start=(dayIndex(email)*n)%qs.length;return (start+1)+'–'+Math.min(start+n,qs.length);}
+function masteredCount(email){var m=masteryOf(email);return courseQs().filter(function(q){return isMastered(m[q.id]);}).length;}
+function slotOf(at){var h=parseInt(String(at||'').slice(11,13),10);if(isNaN(h))return -1;var best=0;SLOTS.forEach(function(s,i){if(Math.abs(h-s)<Math.abs(h-SLOTS[best]))best=i;});return best;}
+function setSessions(email){ // sessions of set mode (id starts with T), newest first
+  var ss={};myLogs(email).forEach(function(l){if(String(l.session).charAt(0)!=='T')return;(ss[l.session]=ss[l.session]||[]).push(l);});
+  return Object.keys(ss).map(function(k){return ss[k];}).sort(function(a,b){return a[0].at<b[0].at?1:-1;});}
+function todaySlots(email){var t=todayISO();var done=[false,false,false];setSessions(email).forEach(function(a){if((a[0].at||'').slice(0,10)===t)done[slotOf(a[0].at)]=true;});return done;}
+function slotsHtml(email){var d=todaySlots(email);return '<span class="chain" style="display:inline-flex;gap:10px">'+SLOTS.map(function(h,i){return '<span class="badge '+(d[i]?'b-ok':'')+'">'+h+(course==='en'?'時':':00')+' '+(d[i]?'✓':'–')+'</span>';}).join('')+'</span>';}
+function startSet(){
+  var qs=currentSet();if(!qs.length){showToast(T('nocat'));return;}
+  quiz={session:'T'+Date.now().toString(36),cat:'set',i:0,startedAt:Date.now(),qStart:0,items:shuffle(qs.slice()).map(function(q){
+    var opts=[{letter:'A',text:q.a},{letter:'B',text:q.b},{letter:'C',text:q.c},{letter:'D',text:q.d}].filter(function(o){return o.text;});
+    return {q:q,opts:shuffle(opts),choice:null,correct:null,sec:null};})};
+  render();
+}
 function renderStudyHome(){
   var mine=myLogs();var today=todayISO();var todayN=mine.filter(function(l){return (l.at||'').slice(0,10)===today;}).length;
   var qs=courseQs();
-  var h='<h2>'+T('study')+'</h2>'+courseSwitch()+'<p class="viewdesc">'+T('pick')+'</p>';
+  var h='<h2>'+T('study')+'</h2>'+courseSwitch();
+  var cs=currentSet();var ms=masteredCount();var ss=setSessions();var last=ss.length?stats(ss[0]):null;
+  h+='<div class="card" style="margin-bottom:18px"><h3 style="margin-top:0">'+T('set')+' · '+T('day')+' '+(dayIndex()+1)+' · #'+setRangeLabel()+'</h3>';
+  h+='<p style="margin:4px 0 10px">'+T('setdesc')+'</p>';
+  h+='<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+slotsHtml()+'<span class="hint">'+T('mastered')+' '+ms+' / '+courseQs().length+'</span>'+(last?'<span class="hint">'+T('lastrun')+' '+last.c+'/'+last.n+' · '+last.avg.toFixed(1)+'s</span>':'')+'<span class="spacer"></span><button class="btn" onclick="startSet()">'+T('startset')+'</button></div></div>';
+  h+='<h3>'+T('free')+'</h3><p class="viewdesc">'+T('pick')+'</p>';
   h+='<div class="catgrid">';
   var all={id:'all',label:T('all'),sub:T('allsub')};
   [all].concat(COURSES[course].cats).forEach(function(c){var n=c.id==='all'?qs.length:qs.filter(function(q){return q.cat===c.id;}).length;h+='<button class="catbtn '+(studyCat===c.id?'on':'')+'" onclick="studyCat=\''+c.id+'\';render()"><b>'+c.label+'</b><small>'+c.sub+' · '+n+' '+T('questions')+'</small></button>';});
@@ -693,7 +722,7 @@ var _timerIv=null;
 function renderQuiz(){
   var it=quiz.items[quiz.i];var q=it.q;var n=quiz.items.length;
   if(it.choice===null){quiz.qStart=Date.now();clearInterval(_timerIv);_timerIv=setInterval(function(){var el=document.getElementById('timer');if(el)el.textContent=((Date.now()-quiz.qStart)/1000).toFixed(0)+'s';},500);}
-  var h='<div class="qcard"><div class="qtop"><span class="badge b-acc">'+escapeHtml(catLabel(q.cat))+'</span><span>'+(quiz.i+1)+' / '+n+'</span><div class="prog"><i style="width:'+Math.round(100*quiz.i/n)+'%"></i></div><span class="timer" id="timer">'+(it.sec!==null?it.sec+'s':'0s')+'</span></div>';
+  var h='<div class="qcard"><div class="qtop"><span class="badge b-acc">'+escapeHtml((quiz.cat==='set'?T('set')+' · ':'')+catLabel(q.cat))+'</span><span>'+(quiz.i+1)+' / '+n+'</span><div class="prog"><i style="width:'+Math.round(100*quiz.i/n)+'%"></i></div><span class="timer" id="timer">'+(it.sec!==null?it.sec+'s':'0s')+'</span></div>';
   h+='<div class="qtext'+(q.q.length>40?' small':'')+'">'+escapeHtml(q.q)+'</div><div class="opts">';
   it.opts.forEach(function(o,k){var cls='opt';if(it.choice!==null){if(o.letter===q.ans.toUpperCase())cls+=' right';else if(o.letter===it.choice)cls+=' wrong';}
     h+='<button class="'+cls+'" '+(it.choice!==null?'disabled':'')+' onclick="answer(\''+o.letter+'\')"><span class="k">'+(k+1)+'</span><span>'+escapeHtml(o.text)+'</span></button>';});
@@ -716,6 +745,7 @@ function quitQuiz(){clearInterval(_timerIv);quiz=null;render();}
 function renderResult(){
   var n=quiz.items.length,c=quiz.items.filter(function(x){return x.correct;}).length;var secs=quiz.items.reduce(function(s,x){return s+(x.sec||0);},0);
   var h='<div class="qcard" style="text-align:center"><div class="res-big">'+c+' / '+n+'</div><p>'+T('pct')+' '+Math.round(100*c/n)+'% · '+T('totaltime')+' '+secs.toFixed(1)+'s · '+T('perq')+' '+(secs/n).toFixed(1)+'s</p>';
+  if(quiz.cat==='set'){var prev=setSessions().filter(function(a){return a[0].session!==quiz.session;});if(prev.length){var ps=stats(prev[0]);h+='<p class="hint">'+T('prevrun')+' '+ps.c+'/'+ps.n+' · '+ps.avg.toFixed(1)+'s → '+T('thisrun')+' '+c+'/'+n+' · '+(secs/n).toFixed(1)+'s</p>';}h+='<p>'+slotsHtml()+'</p>';}
   h+='<div class="tablewrap" style="text-align:left"><table><tr><th>#</th><th>'+T('q')+'</th><th>'+T('your')+'</th><th class="c">'+T('result')+'</th><th class="c">'+T('time')+'</th></tr>';
   quiz.items.forEach(function(it,i){var chosen='';it.opts.forEach(function(o){if(o.letter===it.choice)chosen=o.text;});var right='';it.opts.forEach(function(o){if(o.letter===String(it.q.ans).toUpperCase())right=o.text;});
     h+='<tr><td>'+(i+1)+'</td><td>'+escapeHtml(it.q.q)+'</td><td>'+escapeHtml(chosen)+(it.correct?'':' <span class="hint">(→ '+escapeHtml(right)+')</span>')+'</td><td class="c">'+(it.correct?'<span class="badge b-ok">○</span>':'<span class="badge b-bad">×</span>')+'</td><td class="c mono">'+it.sec+'s</td></tr>';});
@@ -737,6 +767,10 @@ function renderProgress(){
   h+='<h3>'+T('bycat')+'</h3><div class="tablewrap"><table><tr><th>'+T('category')+'</th><th class="c">'+T('answers')+'</th><th class="c">'+T('acc')+'</th><th></th><th class="c">'+T('avg')+'</th></tr>';
   COURSES[course].cats.forEach(function(c){var s=stats(mine.filter(function(l){return l.cat===c.id;}));if(!s.n)return;h+='<tr><td>'+c.label+'</td><td class="c">'+s.n+'</td><td class="c">'+s.acc+'%</td><td><div class="bar2"><i style="width:'+s.acc+'%"></i></div></td><td class="c mono">'+s.avg.toFixed(1)+'s</td></tr>';});
   h+='</table></div>';
+  var ss=setSessions(who);
+  if(ss.length){h+='<h3>'+T('sethist')+'</h3><div class="tablewrap"><table><tr><th>'+T('date')+'</th><th>'+T('slot')+'</th><th class="c">'+T('score')+'</th><th></th><th class="c">'+T('avg')+'</th></tr>';
+    ss.slice(0,21).forEach(function(a){var s=stats(a);var si=slotOf(a[0].at);h+='<tr><td class="mono">'+escapeHtml((a[0].at||'').slice(0,16).replace('T',' '))+'</td><td>'+(si>=0?SLOTS[si]+(course==='en'?'時':':00'):'')+'</td><td class="c">'+s.c+' / '+s.n+'</td><td><div class="bar2"><i style="width:'+s.acc+'%"></i></div></td><td class="c mono">'+s.avg.toFixed(1)+'s</td></tr>';});
+    h+='</table></div>';}
   var sk=Object.keys(sessions).sort(function(a,b){return sessions[b][0].at<sessions[a][0].at?-1:1;}).slice(0,15);
   h+='<h3>'+T('sessions')+'</h3><div class="tablewrap"><table><tr><th>'+T('date')+'</th><th>'+T('category')+'</th><th class="c">'+T('score')+'</th><th class="c">'+T('avg')+'</th></tr>';
   sk.forEach(function(k){var a=sessions[k];var s=stats(a);var cats={};a.forEach(function(l){cats[l.cat]=1;});var ck=Object.keys(cats);h+='<tr><td class="mono">'+escapeHtml((a[0].at||'').slice(0,16).replace('T',' '))+'</td><td>'+(ck.length>1?T('mixed'):catLabel(ck[0]))+'</td><td class="c">'+s.c+' / '+s.n+'</td><td class="c mono">'+s.avg.toFixed(1)+'s</td></tr>';});
