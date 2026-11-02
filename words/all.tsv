@@ -1,0 +1,604 @@
+schedule	n	予定・日程	Let me check my schedule.
+arrange	v	手配する・取り決める	I'll arrange a meeting for Monday.
+attend	v	出席する	Will you attend the conference?
+participate	v	参加する	Everyone participated in the discussion.
+discuss	v	話し合う	Let's discuss the budget tomorrow.
+decision	n	決定	We need to make a decision today.
+proposal	n	提案(書)	She submitted a proposal to the client.
+request	n	依頼・要望	We received a request for more samples.
+reply	v	返信する	Please reply by Friday.
+respond	v	応答する・対応する	He responded to the email quickly.
+forward	v	転送する	I'll forward the message to you.
+remind	v	思い出させる・念を押す	Please remind me about the meeting.
+notify	v	通知する	We will notify you of any changes.
+announce	v	発表する	The company announced a new product.
+summary	n	要約	Please send me a summary of the meeting.
+detail	n	詳細	I'll send you the details later.
+issue	n	問題・論点	We have an issue with the server.
+solution	n	解決策	We found a solution to the problem.
+result	n	結果	The results were better than expected.
+process	n	工程・手続き	The approval process takes a week.
+department	n	部署	She works in the sales department.
+employee	n	従業員	The company has 200 employees.
+employer	n	雇用主	My employer offers good benefits.
+supervisor	n	上司・監督者	Ask your supervisor for approval.
+client	n	顧客(取引先)	We meet the client next week.
+customer	n	顧客(消費者)	Customer satisfaction is important.
+supplier	n	供給業者・仕入先	Our supplier is based in India.
+partner	n	提携先・パートナー	We signed a contract with a new partner.
+contract	n	契約(書)	The contract expires in March.
+agreement	n	合意・協定	Both sides reached an agreement.
+budget	n	予算	The project is over budget.
+expense	n	費用・経費	Travel expenses will be reimbursed.
+profit	n	利益	Profit increased by 10% this year.
+loss	n	損失	The company reported a loss.
+income	n	収入	His income has grown steadily.
+payment	n	支払い	Payment is due within 30 days.
+receipt	n	領収書	Please keep the receipt.
+refund	n	返金	We offer a full refund.
+discount	n	割引	Members get a 10% discount.
+fee	n	料金・手数料	There is a small service fee.
+quantity	n	数量	Please specify the quantity.
+quality	n	品質	We focus on quality, not quantity.
+delivery	n	配達・納品	Delivery takes three days.
+shipment	n	出荷・積荷	The shipment arrived this morning.
+warehouse	n	倉庫	The goods are stored in the warehouse.
+inventory	n	在庫	We check the inventory every month.
+order	n	注文	Thank you for your order.
+sample	n	見本・サンプル	Could you send us a sample?
+manufacture	v	製造する	The parts are manufactured in Japan.
+product	n	製品	This is our newest product.
+item	n	品目・項目	Each item is checked before shipping.
+equipment	n	機器・設備	The office needs new equipment.
+facility	n	施設	The facility opens next year.
+location	n	場所・所在地	The new location is near the station.
+branch	n	支店・支社	We opened a branch in Osaka.
+headquarters	n	本社	The headquarters is in Tokyo.
+region	n	地域	Sales grew in every region.
+domestic	a	国内の	Domestic sales are strong.
+overseas	a	海外の	We are expanding overseas markets.
+global	a	世界的な	It is a global company.
+local	a	地元の・現地の	We hire local staff.
+international	a	国際的な	She works for an international firm.
+regular	a	定期的な・通常の	We hold regular meetings.
+annual	a	年1回の・年間の	The annual report is out.
+monthly	a	月1回の・月間の	Monthly sales are up.
+current	a	現在の	The current price is 500 yen.
+previous	a	前の・以前の	The previous version had a bug.
+following	a	次の・以下の	Please read the following instructions.
+recent	a	最近の	Recent sales have been slow.
+immediate	a	即時の	We need an immediate response.
+accurate	a	正確な	The data must be accurate.
+appropriate	a	適切な	Please wear appropriate clothing.
+convenient	a	便利な・都合の良い	Is Tuesday convenient for you?
+efficient	a	効率的な	The new system is more efficient.
+effective	a	効果的な	The campaign was very effective.
+necessary	a	必要な	Is it necessary to attend?
+responsible	a	責任のある	She is responsible for marketing.
+familiar	a	よく知っている	Are you familiar with this software?
+flexible	a	柔軟な	We offer flexible working hours.
+reasonable	a	妥当な・手頃な	The price is reasonable.
+significant	a	重要な・かなりの	There was a significant increase.
+specific	a	具体的な・特定の	Please give a specific example.
+typical	a	典型的な	A typical day starts at nine.
+various	a	さまざまな	We offer various services.
+particular	a	特定の	Is there a particular reason?
+entire	a	全体の	The entire team attended.
+additional	a	追加の	Additional fees may apply.
+former	a	以前の・元の	The former manager retired.
+potential	a	潜在的な・可能性のある	We met a potential client.
+major	a	主要な・大きな	It was a major change.
+minor	a	小さな・軽微な	Only minor changes are needed.
+complete	v	完了する	Please complete the form.
+submit	v	提出する	Submit the report by noon.
+approve	v	承認する	The manager approved the plan.
+reject	v	却下する	The proposal was rejected.
+accept	v	受け入れる	We accept credit cards.
+cancel	v	取り消す	The flight was cancelled.
+delay	v	遅らせる	The meeting was delayed.
+achieve	v	達成する	We achieved our sales target.
+improve	v	改善する	We need to improve our service.
+increase	v	増える・増やす	Costs increased last year.
+decrease	v	減る・減らす	Sales decreased in May.
+reduce	v	減らす	We must reduce waste.
+maintain	v	維持する	Maintain a good relationship with clients.
+manage	v	管理する・経営する	She manages a team of ten.
+monitor	v	監視する・観察する	We monitor the system 24 hours a day.
+measure	v	測る・評価する	How do you measure success?
+analyze	v	分析する	We analyzed the survey results.
+compare	v	比較する	Compare the two offers.
+consider	v	検討する	Please consider our proposal.
+determine	v	決定する・特定する	We need to determine the cause.
+develop	v	開発する	They developed a new app.
+design	v	設計する	The system was designed in-house.
+establish	v	設立する・確立する	The company was established in 1990.
+expand	v	拡大する	We plan to expand into Asia.
+launch	v	立ち上げる・発売する	We launched the product in April.
+release	v	公開する・発売する	The update was released today.
+introduce	v	導入する・紹介する	We introduced a new policy.
+adopt	v	採用する	The team adopted a new tool.
+apply	v	申し込む・適用する	Apply for the position online.
+require	v	必要とする	This job requires experience.
+provide	v	提供する	We provide technical support.
+offer	v	提供する・申し出る	They offered me a job.
+obtain	v	取得する	You must obtain a permit.
+acquire	v	取得する・買収する	The firm acquired a rival company.
+deliver	v	配達する・届ける	We deliver within two days.
+distribute	v	配布する・流通させる	The report was distributed to all staff.
+collect	v	集める	Collect the data by Friday.
+gather	v	集める・集まる	We gathered feedback from users.
+record	v	記録する	Please record your working hours.
+report	v	報告する	Report any problems immediately.
+present	v	発表する・提示する	She presented the results.
+explain	v	説明する	Could you explain the process?
+describe	v	説明する・描写する	Describe the problem in detail.
+indicate	v	示す	The data indicates a trend.
+suggest	v	提案する・示唆する	I suggest we wait.
+recommend	v	勧める	I recommend this option.
+advise	v	助言する	We advise customers to back up data.
+inform	v	知らせる	Please inform us of any changes.
+mention	v	言及する	He mentioned the deadline.
+assume	v	仮定する・思い込む	I assumed you knew.
+expect	v	予想する・期待する	We expect growth next year.
+predict	v	予測する	It is hard to predict demand.
+estimate	v	見積もる	We estimate the cost at 1 million yen.
+calculate	v	計算する	Calculate the total cost.
+ensure	v	確実にする	Ensure that the door is locked.
+guarantee	v	保証する	We guarantee delivery by Friday.
+prevent	v	防ぐ	This will prevent errors.
+avoid	v	避ける	Avoid using jargon.
+handle	v	対処する・扱う	She handles customer complaints.
+resolve	v	解決する	The issue was resolved.
+solve	v	解く・解決する	We solved the problem together.
+identify	v	特定する	Identify the main cause.
+recognize	v	認識する・認める	I recognize the importance of training.
+realize	v	気づく・実現する	I realized my mistake.
+notice	v	気づく	Did you notice the change?
+observe	v	観察する	We observed the test carefully.
+examine	v	調べる・検査する	The doctor examined the patient.
+investigate	v	調査する	The police investigated the case.
+review	v	見直す・確認する	Please review the draft.
+revise	v	修正する・改訂する	We revised the plan.
+modify	v	変更する・修正する	The design was modified.
+adjust	v	調整する	Adjust the settings as needed.
+replace	v	取り替える	Replace the old parts.
+remove	v	取り除く	Remove the cover first.
+install	v	設置する・インストールする	Install the software first.
+operate	v	操作する・運営する	The machine is easy to operate.
+perform	v	実行する・演じる	The system performed well.
+function	v	機能する	The device functions normally.
+transfer	v	移す・転勤させる	He was transferred to Osaka.
+assign	v	割り当てる	Tasks were assigned to each member.
+allocate	v	配分する	Allocate the budget carefully.
+organize	v	整理する・主催する	She organized the event.
+coordinate	v	調整する	He coordinates between departments.
+cooperate	v	協力する	Thank you for cooperating.
+collaborate	v	共同作業する	We collaborated with a university.
+contribute	v	貢献する	Everyone contributed to the success.
+hire	v	雇う	We are hiring engineers.
+recruit	v	採用する・募集する	We recruited five new staff.
+train	v	訓練する	New staff are trained for a month.
+promote	v	昇進させる・宣伝する	She was promoted to manager.
+retire	v	退職する	He retired at 65.
+resign	v	辞任する	The director resigned.
+quit	v	辞める	She quit her job.
+attach	v	添付する	Attach the file to the email.
+enclose	v	同封する	I enclose a copy of the invoice.
+sign	v	署名する	Please sign the contract.
+register	v	登録する	Register for the seminar online.
+reserve	v	予約する	I reserved a table for four.
+book	v	予約する	Book a hotel room.
+postpone	v	延期する	The event was postponed.
+reschedule	v	日程を変更する	Can we reschedule the call?
+extend	v	延長する	They extended the deadline.
+expire	v	期限が切れる	Your password expires soon.
+renew	v	更新する	Renew your license annually.
+terminate	v	終了する・解約する	The contract was terminated.
+advantage	n	利点	Low cost is a big advantage.
+disadvantage	n	不利な点	The disadvantage is the long delivery time.
+benefit	n	利益・恩恵	Employees receive health benefits.
+opportunity	n	機会	This is a great opportunity.
+challenge	n	課題・難題	Our biggest challenge is cost.
+risk	n	リスク・危険	There is a risk of delay.
+concern	n	懸念	Security is a major concern.
+priority	n	優先事項	Safety is our top priority.
+purpose	n	目的	What is the purpose of the meeting?
+goal	n	目標	Our goal is 10% growth.
+objective	n	目的・目標	The objective is clear.
+strategy	n	戦略	We need a new marketing strategy.
+approach	n	取り組み方・手法	Let's try a different approach.
+method	n	方法	This method is faster.
+policy	n	方針・規定	Read the company policy.
+regulation	n	規制・規則	New regulations take effect in April.
+requirement	n	要件・必要条件	Meet all the requirements.
+standard	n	基準・標準	The product meets safety standards.
+condition	n	条件・状態	The machine is in good condition.
+situation	n	状況	The situation has improved.
+circumstance	n	事情・状況	Under the circumstances, we cancelled.
+factor	n	要因	Price is an important factor.
+cause	n	原因	We found the cause of the error.
+effect	n	効果・影響	The change had little effect.
+impact	n	影響	The news had a big impact on sales.
+influence	n	影響(力)	She has influence in the company.
+trend	n	傾向	Sales show an upward trend.
+demand	n	需要	Demand for the product is high.
+supply	n	供給	Supply cannot meet demand.
+competition	n	競争	Competition is intense.
+competitor	n	競合他社	Our competitors cut prices.
+market	n	市場	The market is growing.
+share	n	シェア・割合	Our market share rose to 20%.
+growth	n	成長	Growth slowed last year.
+performance	n	業績・性能	Performance was strong this quarter.
+productivity	n	生産性	Productivity improved by 15%.
+efficiency	n	効率	We improved efficiency.
+capacity	n	能力・収容量	The factory is at full capacity.
+resource	n	資源・リソース	We lack resources.
+asset	n	資産	Staff are our greatest asset.
+investment	n	投資	The investment paid off.
+funding	n	資金(調達)	We secured funding.
+loan	n	融資・貸付	The bank approved the loan.
+debt	n	負債・借金	The company reduced its debt.
+tax	n	税	Prices include tax.
+insurance	n	保険	The insurance covers damage.
+salary	n	給料	Salaries are paid monthly.
+wage	n	賃金	The minimum wage increased.
+bonus	n	賞与	We received a year-end bonus.
+promotion	n	昇進・販売促進	She got a promotion.
+position	n	職・地位	He applied for the position.
+role	n	役割	What is your role in the project?
+duty	n	職務・義務	Her duties include scheduling.
+responsibility	n	責任	It is my responsibility.
+authority	n	権限・当局	He has the authority to approve.
+permission	n	許可	You need permission to enter.
+approval	n	承認	We are waiting for approval.
+confirmation	n	確認・確定	You will receive a confirmation email.
+instruction	n	指示	Follow the instructions.
+guideline	n	指針・ガイドライン	Follow the guidelines.
+manual	n	説明書	Read the manual first.
+document	n	文書	Sign the documents.
+form	n	用紙・書式	Fill in the form.
+application	n	申込・応用・アプリ	Submit your application.
+reference	n	参照・照会先	Use this as a reference.
+evidence	n	証拠	There is no evidence of a problem.
+survey	n	調査・アンケート	We conducted a survey.
+research	n	研究・調査	Research shows a clear trend.
+analysis	n	分析	The analysis took two weeks.
+statistic	n	統計	The statistics are reliable.
+figure	n	数字・数値	Sales figures are rising.
+rate	n	率・料金	The error rate is low.
+ratio	n	比率	The ratio is 3 to 1.
+percentage	n	割合・パーセント	A large percentage agreed.
+average	n	平均	The average is 50.
+total	n	合計	The total is 3,000 yen.
+amount	n	金額・量	What is the total amount?
+range	n	範囲	Prices range from 100 to 500 yen.
+limit	n	限度・上限	There is a limit of 10 per person.
+level	n	水準・段階	Stock is at a low level.
+degree	n	程度・学位	The plan succeeded to some degree.
+quarter	n	四半期	Sales rose in the first quarter.
+period	n	期間	The trial period is 30 days.
+term	n	期間・条件・用語	The contract term is two years.
+stage	n	段階	We are in the final stage.
+phase	n	段階・局面	Phase two starts in May.
+step	n	手順・段階	Follow these steps.
+option	n	選択肢	We have two options.
+alternative	n	代替案	Is there an alternative?
+choice	n	選択	It was the right choice.
+preference	n	好み・優先	Do you have a preference?
+variety	n	多様性・種類	We sell a variety of goods.
+feature	n	特徴・機能	The main feature is speed.
+version	n	版・バージョン	Use the latest version.
+error	n	誤り・エラー	An error occurred.
+failure	n	失敗・故障	The failure was caused by a bug.
+available	a	利用できる・入手可能な	The room is available now.
+accessible	a	利用しやすい・行きやすい	The site is accessible by train.
+affordable	a	手頃な価格の	We offer affordable plans.
+valuable	a	価値のある	Your feedback is valuable.
+essential	a	不可欠な	Sleep is essential for health.
+crucial	a	極めて重要な	Timing is crucial.
+critical	a	重大な・批判的な	It is a critical issue.
+urgent	a	緊急の	This is urgent.
+primary	a	主要な・第一の	Our primary goal is safety.
+secondary	a	二次的な	Cost is a secondary concern.
+initial	a	最初の	The initial cost is high.
+final	a	最終的な	This is the final version.
+temporary	a	一時的な	It is a temporary fix.
+permanent	a	永続的な	She got a permanent position.
+constant	a	絶え間ない・一定の	There is constant pressure.
+frequent	a	頻繁な	Frequent errors slow us down.
+occasional	a	時々の	We have occasional delays.
+rare	a	まれな	Such errors are rare.
+common	a	一般的な	This is a common mistake.
+ordinary	a	普通の	It was an ordinary day.
+unusual	a	珍しい・異常な	This is unusual behavior.
+similar	a	似ている	The two products are similar.
+identical	a	全く同じ	The files are identical.
+different	a	異なる	Try a different approach.
+separate	a	別々の	Keep the files separate.
+individual	a	個々の	Each individual case is different.
+mutual	a	相互の	It is a mutual benefit.
+independent	a	独立した	We hired an independent auditor.
+dependent	a	依存している	Sales are dependent on weather.
+relevant	a	関連する	Include only relevant data.
+suitable	a	ふさわしい	Find a suitable candidate.
+capable	a	能力がある	She is a capable leader.
+competent	a	有能な	He is a competent engineer.
+confident	a	自信のある	I am confident about the result.
+aware	a	気づいている	Be aware of the risks.
+careful	a	注意深い	Be careful with the data.
+cautious	a	慎重な	Investors are cautious.
+strict	a	厳しい	The rules are strict.
+precise	a	正確な・精密な	Give precise figures.
+rough	a	大まかな・粗い	Give me a rough idea.
+brief	a	短い・簡潔な	Keep it brief.
+detailed	a	詳細な	Send a detailed report.
+complex	a	複雑な	The system is complex.
+simple	a	単純な	Keep the design simple.
+obvious	a	明らかな	The answer is obvious.
+clear	a	明確な	The instructions are clear.
+vague	a	曖昧な	The answer was vague.
+likely	a	ありそうな	Rain is likely tomorrow.
+unlikely	a	ありそうにない	Delay is unlikely.
+possible	a	可能な	Is it possible to change?
+impossible	a	不可能な	It is impossible to finish today.
+certain	a	確実な・ある特定の	I am certain of it.
+probable	a	起こりそうな	A delay is probable.
+successful	a	成功した	The launch was successful.
+profitable	a	利益の出る	The business is profitable.
+competitive	a	競争力のある	Our prices are competitive.
+productive	a	生産的な	It was a productive meeting.
+reliable	a	信頼できる	The service is reliable.
+stable	a	安定した	The system is stable.
+secure	a	安全な・確実な	Use a secure connection.
+sensitive	a	機密の・敏感な	This is sensitive information.
+confidential	a	機密の	Keep this confidential.
+official	a	公式の	This is the official announcement.
+legal	a	法律の・合法の	Seek legal advice.
+financial	a	財務の・金融の	The financial report is ready.
+commercial	a	商業的な	It was a commercial success.
+industrial	a	産業の・工業の	It is an industrial area.
+technical	a	技術的な	We had a technical problem.
+practical	a	実用的な	It is a practical solution.
+theoretical	a	理論上の	It is only theoretical.
+physical	a	物理的な・身体の	Physical copies are available.
+visual	a	視覚的な	Use visual aids.
+verbal	a	口頭の	We reached a verbal agreement.
+formal	a	正式な・堅い	Wear formal clothes.
+informal	a	非公式の・くだけた	It was an informal chat.
+polite	a	丁寧な	Be polite to customers.
+eager	a	熱心な	She is eager to learn.
+willing	a	いとわない・喜んで〜する	I am willing to help.
+reluctant	a	気が進まない	He was reluctant to agree.
+approximately	ad	およそ	It costs approximately $100.
+roughly	ad	大まかに	Roughly half agreed.
+exactly	ad	正確に・まさに	That is exactly right.
+nearly	ad	ほとんど	We are nearly done.
+eventually	ad	最終的に	They eventually agreed.
+immediately	ad	直ちに	Reply immediately.
+currently	ad	現在	We are currently hiring.
+recently	ad	最近	We recently moved.
+previously	ad	以前に	As previously mentioned...
+frequently	ad	頻繁に	We meet frequently.
+rarely	ad	めったに〜ない	He rarely complains.
+particularly	ad	特に	It is particularly important.
+especially	ad	特に	Be careful, especially at night.
+mainly	ad	主に	We sell mainly to retailers.
+mostly	ad	ほとんど	The users are mostly students.
+entirely	ad	完全に	I entirely agree.
+partly	ad	部分的に	It is partly my fault.
+otherwise	ad	さもなければ・それ以外は	Hurry, otherwise we'll be late.
+therefore	ad	したがって	Therefore, we cancelled the plan.
+however	ad	しかしながら	However, costs are rising.
+accomplish	v	成し遂げる	We accomplished a lot this year.
+address	v	対処する・取り組む	We must address the issue.
+anticipate	v	予期する	We anticipate strong demand.
+appreciate	v	感謝する・真価を認める	I appreciate your help.
+assess	v	評価する	We assessed the damage.
+attribute	v	〜のせいにする・帰する	He attributed the delay to weather.
+clarify	v	明確にする	Could you clarify your point?
+comply	v	従う・順守する	We comply with the law.
+conduct	v	実施する	We conducted a survey.
+consult	v	相談する	Consult a lawyer first.
+convince	v	納得させる	She convinced the board.
+demonstrate	v	実演する・示す	Let me demonstrate the feature.
+emphasize	v	強調する	He emphasized the risks.
+enable	v	可能にする	The tool enables faster work.
+encounter	v	遭遇する	We encountered a problem.
+enhance	v	高める・強化する	This enhances security.
+evaluate	v	評価する	We evaluated three vendors.
+exceed	v	超える	Sales exceeded the target.
+facilitate	v	促進する・円滑にする	The app facilitates communication.
+generate	v	生み出す	The ad generated many leads.
+implement	v	実施する・実装する	We implemented the new system.
+incorporate	v	組み込む	Incorporate the feedback.
+negotiate	v	交渉する	We negotiated a better price.
+outline	v	概要を述べる	She outlined the plan.
+overcome	v	克服する	We overcame the difficulties.
+oversee	v	監督する	He oversees the project.
+prioritize	v	優先順位をつける	Prioritize your tasks.
+pursue	v	追求する	We will pursue this opportunity.
+retain	v	保持する	Retain copies of all documents.
+specify	v	明記する	Specify the delivery date.
+streamline	v	効率化する	We streamlined the process.
+undergo	v	経験する・受ける	The system underwent testing.
+undertake	v	引き受ける・着手する	We undertook a major project.
+utilize	v	活用する	Utilize existing resources.
+verify	v	検証する・確認する	Verify the data before use.
+withdraw	v	引き出す・撤回する	He withdrew the offer.
+accountability	n	説明責任	Accountability is important.
+acquisition	n	取得・買収	The acquisition was completed.
+allocation	n	配分	Budget allocation is final.
+assessment	n	評価	We did a risk assessment.
+compliance	n	法令順守	Compliance is mandatory.
+consequence	n	結果・影響	Consider the consequences.
+constraint	n	制約	We have time constraints.
+criteria	n	基準	What are the selection criteria?
+expertise	n	専門知識	We need legal expertise.
+feedback	n	フィードバック・意見	Give us your feedback.
+implication	n	含意・影響	Consider the implications.
+initiative	n	新たな取り組み・主導	She launched a new initiative.
+insight	n	洞察	The data gave us insight.
+liability	n	法的責任・負債	Limit your liability.
+milestone	n	節目・マイルストーン	We reached a key milestone.
+outcome	n	成果・結果	The outcome was positive.
+overview	n	概要	Here is an overview.
+perspective	n	視点	Consider the customer's perspective.
+precaution	n	予防策	Take precautions.
+procedure	n	手順	Follow the procedure.
+scope	n	範囲	This is out of scope.
+stakeholder	n	利害関係者	Inform all stakeholders.
+sustainability	n	持続可能性	Sustainability is a key theme.
+transition	n	移行	The transition went smoothly.
+workload	n	仕事量	The workload is heavy.
+workforce	n	労働力・従業員全体	The workforce is diverse.
+agenda	n	議題	The agenda is attached.
+minutes	n	議事録	Please take the minutes.
+deadline	n	締め切り	The deadline is Friday.
+draft	n	下書き・草案	Send me the first draft.
+invoice	n	請求書	The invoice is attached.
+quotation	n	見積書	Please send a quotation.
+warranty	n	保証	The warranty lasts two years.
+vendor	n	販売業者・ベンダー	We chose a new vendor.
+subsidiary	n	子会社	It is a subsidiary of a large group.
+merger	n	合併	The merger was announced.
+shareholder	n	株主	Shareholders approved the plan.
+revenue	n	売上・収益	Revenue grew 8%.
+turnover	n	売上高・離職率	Staff turnover is high.
+margin	n	利益率・余白	Our margins are thin.
+overhead	n	間接費	Overhead costs are rising.
+backup	n	バックアップ・控え	Make a backup of the data.
+database	n	データベース	The database was updated.
+server	n	サーバー	The server is down.
+network	n	ネットワーク	The network is slow.
+device	n	機器・端末	Connect your device.
+software	n	ソフトウェア	Install the software.
+hardware	n	ハードウェア	The hardware is old.
+upgrade	n	アップグレード・更新	The upgrade is free.
+maintenance	n	保守	Maintenance is scheduled tonight.
+outage	n	停止・障害	There was a power outage.
+breach	n	侵害・違反	There was a data breach.
+encryption	n	暗号化	Encryption protects your data.
+authentication	n	認証	Two-factor authentication is required.
+vulnerability	n	脆弱性	We fixed the vulnerability.
+automation	n	自動化	Automation saves time.
+integration	n	統合	The integration took a month.
+deployment	n	配備・展開	Deployment is scheduled for Friday.
+specification	n	仕様	Read the specification.
+prototype	n	試作品	We built a prototype.
+feasibility	n	実現可能性	We did a feasibility study.
+scalability	n	拡張性	Scalability is important.
+accommodate	v	収容する・対応する	The room accommodates 50 people.
+accompany	v	同行する・伴う	I will accompany you to the site.
+acknowledge	v	認める・受領を知らせる	Please acknowledge receipt.
+adapt	v	適応する・適合させる	We adapted the product for India.
+afford	v	余裕がある	We cannot afford delays.
+alter	v	変更する	The schedule was altered.
+assemble	v	組み立てる・集める	The parts are assembled here.
+attain	v	達成する	She attained her goal.
+authorize	v	権限を与える・認可する	Only managers can authorize payments.
+cease	v	やめる・停止する	Production ceased in June.
+cite	v	引用する・挙げる	He cited several examples.
+commence	v	開始する	Work will commence on Monday.
+compensate	v	補償する	We will compensate for the loss.
+compile	v	まとめる・編集する	Compile the data into a report.
+confine	v	限定する	Confine your comments to the topic.
+conform	v	従う・一致する	Products must conform to standards.
+consolidate	v	統合する・強化する	We consolidated two offices.
+convert	v	変換する	Convert the file to PDF.
+decline	v	減少する・断る	Sales declined. / He declined the offer.
+dedicate	v	捧げる・専念させる	She dedicated years to research.
+derive	v	得る・由来する	We derived the figures from the survey.
+detect	v	検知する	The system detects errors.
+diminish	v	減少する	Interest diminished over time.
+disclose	v	開示する	Disclose all relevant information.
+disrupt	v	混乱させる	The strike disrupted deliveries.
+eliminate	v	取り除く	Eliminate unnecessary steps.
+emerge	v	現れる	New problems emerged.
+endorse	v	支持する・裏書きする	The board endorsed the plan.
+enforce	v	施行する・強制する	The rules are strictly enforced.
+exclude	v	除外する	Tax is excluded.
+exploit	v	活用する・搾取する	Exploit new opportunities.
+fluctuate	v	変動する	Prices fluctuate daily.
+forecast	v	予測する	Analysts forecast growth.
+foster	v	育む・促進する	We foster a culture of learning.
+fulfill	v	果たす・満たす	We fulfilled the order.
+hinder	v	妨げる	Bad weather hindered progress.
+illustrate	v	例示する・説明する	The chart illustrates the trend.
+impose	v	課す	A new tax was imposed.
+inspect	v	検査する	Inspect the goods on arrival.
+interpret	v	解釈する・通訳する	How do you interpret the data?
+justify	v	正当化する	Can you justify the cost?
+mediate	v	仲裁する	He mediated the dispute.
+minimize	v	最小限にする	Minimize the risk.
+neglect	v	怠る・無視する	Do not neglect maintenance.
+omit	v	省く	Omit unnecessary details.
+optimize	v	最適化する	Optimize the process.
+outsource	v	外部委託する	We outsource support.
+persuade	v	説得する	She persuaded the client.
+possess	v	所有する	He possesses great skill.
+proceed	v	進める・続行する	Let's proceed to the next item.
+prohibit	v	禁止する	Smoking is prohibited.
+reinforce	v	強化する	Reinforce the security measures.
+restrict	v	制限する	Access is restricted.
+reveal	v	明らかにする	The audit revealed errors.
+seek	v	求める	We seek a partner in India.
+simplify	v	簡素化する	Simplify the form.
+stimulate	v	刺激する・促す	Lower rates stimulate spending.
+suspend	v	一時停止する	Service was suspended.
+sustain	v	持続させる	Can we sustain this growth?
+tackle	v	取り組む	We must tackle the problem.
+tolerate	v	許容する	We cannot tolerate delays.
+trigger	v	引き起こす	The error triggered an alert.
+abundance	n	豊富さ	There is an abundance of data.
+ambiguity	n	曖昧さ	Avoid ambiguity in contracts.
+assurance	n	保証・確信	We need assurance of quality.
+barrier	n	障壁	Language is a barrier.
+burden	n	負担	Paperwork is a burden.
+commitment	n	約束・献身	We appreciate your commitment.
+consensus	n	合意・総意	We reached a consensus.
+dispute	n	紛争・論争	The dispute was settled.
+distinction	n	区別・差異	Make a clear distinction.
+dividend	n	配当	The dividend was raised.
+emphasis	n	強調・重点	The emphasis is on quality.
+exception	n	例外	There are no exceptions.
+flaw	n	欠陥	The design has a flaw.
+hazard	n	危険(要因)	Fire hazards must be removed.
+incentive	n	動機づけ・奨励金	Bonuses are an incentive.
+inquiry	n	問い合わせ	We received an inquiry.
+intention	n	意図	Our intention is to expand.
+legislation	n	法律・立法	New legislation was passed.
+obligation	n	義務	We have an obligation to deliver.
+obstacle	n	障害	Cost is the main obstacle.
+penalty	n	罰則・違約金	Late payment incurs a penalty.
+premise	n	前提・敷地	The plan is based on a false premise.
+proportion	n	割合	A large proportion agreed.
+prospect	n	見込み・見込み客	The prospects are good.
+reputation	n	評判	The firm has a good reputation.
+restriction	n	制限	There are restrictions on imports.
+surplus	n	余剰・黒字	We have a surplus of stock.
+threshold	n	しきい値・境目	Sales passed the threshold.
+tendency	n	傾向	There is a tendency to overspend.
+adequate	a	十分な	The budget is adequate.
+ambiguous	a	曖昧な	The wording is ambiguous.
+comprehensive	a	包括的な	We did a comprehensive review.
+consistent	a	一貫した	Be consistent in your approach.
+diverse	a	多様な	We have a diverse team.
+excessive	a	過度の	Avoid excessive costs.
+feasible	a	実現可能な	The plan is feasible.
+genuine	a	本物の・誠実な	It is a genuine concern.
+inevitable	a	避けられない	Some delay is inevitable.
+mandatory	a	必須の・義務の	Training is mandatory.
+negligible	a	無視できるほど小さい	The difference is negligible.
+outstanding	a	未払いの・傑出した	There is an outstanding balance.
+preliminary	a	予備の・暫定の	These are preliminary results.
+prominent	a	著名な・目立つ	She is a prominent researcher.
+prompt	a	迅速な	Thank you for your prompt reply.
+subsequent	a	その後の	Subsequent tests confirmed it.
+substantial	a	相当な・大幅な	We made substantial progress.
+sufficient	a	十分な	We have sufficient stock.
+tentative	a	仮の・暫定的な	This is a tentative schedule.
+thorough	a	徹底的な	Do a thorough check.
+viable	a	実行可能な・存続できる	The plan is viable.
+deliberately	ad	意図的に	He deliberately ignored it.
+accordingly	ad	それに応じて	Plan accordingly.
+nevertheless	ad	それにもかかわらず	Nevertheless, we continued.
