@@ -1497,7 +1497,8 @@ function buildInstructions(mode,qs){
   var tl=targetLang(),hl=helperLang();
   var lv=learnerLevel();var level=voiceLevelText(lv);
   var who=course==='jp'?'an English-speaking adult learner of Japanese who works at a Japanese company':'a Japanese adult learner of English who works at a Japanese company';
-  var s='You are a friendly, patient language tutor for '+who+'. Level: '+level+'.\n';
+  var s='MODE: '+(mode==='listening'?'LISTENING DRILL (you read a sentence, ask a question about it, learner answers). This is NOT free conversation.':'SPEAKING PRACTICE (free conversation; the learner must talk a lot).')+'\n';
+  s+='You are a friendly, patient language tutor for '+who+'. Level: '+level+'.\n';
   s+='Speak ONLY in '+tl+'. Use '+hl+' only for a one-phrase hint when the learner is clearly stuck, then return to '+tl+'.\n';
   s+='Keep every turn short: at most 2 sentences, then stop and wait for the learner. Never lecture. This is audio only; never spell things out or mention text.\n';
   s+='The session is exactly '+voiceMinutes()+' minutes and ends automatically; keep a brisk pace so every target word is covered. Do not chat about unrelated topics.\n';
@@ -1512,6 +1513,7 @@ function buildInstructions(mode,qs){
     s+='Do not explain grammar. If the learner says "again" or "もう一度", repeat the sentence. ';
     s+='Begin now: greet in one sentence, then say the first sentence.';
   }
+  s+='\nREMINDER: the mode is '+(mode==='listening'?'LISTENING DRILL — follow steps (1)-(5) for every word; do not drift into open conversation.':'SPEAKING PRACTICE.');
   return s;
 }
 function voiceLevelText(lv){
@@ -1520,6 +1522,9 @@ function voiceLevelText(lv){
   return m[lv]||lv;
 }
 function recentWeakPoints(){var out=[];voiceSessions().map(voiceSessionSummary).filter(function(s){return s.score&&s.score.fix&&s.score.fix.length;}).slice(0,3).forEach(function(s){s.score.fix.forEach(function(f){if(out.indexOf(f)===-1)out.push(f);});});return out.slice(0,6);}
+function firstTurnPrompt(){var w=voice&&voice.words&&voice.words.length?wordOf(voice.words[0]):'';var tl=targetLang();
+  if(voice&&voice.mode==='listening')return 'In '+tl+': greet in one short sentence, then say "Listen." and read one short natural sentence that uses "'+w+'", then ask one simple comprehension question about that sentence, then stop and wait.';
+  return 'In '+tl+': greet in one short sentence and ask one short question that invites the learner to use "'+w+'". Then stop and wait.';}
 function feedbackPrompt(){
   var tl=targetLang();
   return 'The session is ending now. In '+tl+', in at most 4 short sentences: say one thing the learner did well, give two specific corrections (words or grammar) from this conversation, then say goodbye. Then stop.';
@@ -1609,7 +1614,7 @@ async function startVoice(mode){
     pc.addTrack(ms.getTracks()[0]);
     var dc=pc.createDataChannel('oai-events');voice.dc=dc;
     dc.onmessage=onVoiceEvent;
-    dc.onopen=function(){if(!voice)return;voice.status='live';voice.started=Date.now();dc.send(JSON.stringify({type:'response.create'}));voice.timer=setInterval(voiceTick,500);updateVoiceDom();};
+    dc.onopen=function(){if(!voice)return;voice.status='live';voice.started=Date.now();dc.send(JSON.stringify({type:'response.create',response:{instructions:firstTurnPrompt()}}));voice.timer=setInterval(voiceTick,500);updateVoiceDom();};
     pc.onconnectionstatechange=function(){if(!voice||voice.pc!==pc)return;if(['failed','closed'].indexOf(pc.connectionState)!==-1&&voice.status!=='ended'){voice.error=voice.error||('connection '+pc.connectionState);finishVoice();}};
     var offer=await pc.createOffer();await pc.setLocalDescription(offer);
     var r=await fetch('https://api.openai.com/v1/realtime/calls',{method:'POST',body:offer.sdp,headers:{Authorization:'Bearer '+tok.value,'Content-Type':'application/sdp'}});
