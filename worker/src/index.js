@@ -19,7 +19,7 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     const url = new URL(request.url);
     if (url.pathname === '/health') return json(200, { ok: true, configured: !!env.OPENAI_API_KEY, model: env.REALTIME_MODEL });
-    if (request.method !== 'POST' || url.pathname !== '/token') return json(404, { error: 'not found' });
+    if (request.method !== 'POST' || (url.pathname !== '/token' && url.pathname !== '/generate')) return json(404, { error: 'not found' });
     if (origin && !allowedOrigins.includes(origin)) return json(403, { error: 'origin not allowed' });
     if (!env.OPENAI_API_KEY) return json(503, { error: 'OPENAI_API_KEY is not configured on the server' });
 
@@ -42,9 +42,11 @@ export default {
     if (String(info.email_verified) !== 'true' || !email) return json(401, { error: 'email not verified' });
     if (allowedDomains.length && !allowedDomains.includes(domain)) return json(403, { error: 'domain not allowed: ' + domain });
 
-    // 2. Read the requested session shape (instructions/voice/language come from the page)
     let body = {};
     try { body = await request.json(); } catch (e) {}
+    if (url.pathname === '/generate') return generateQuestions(body, env, json);
+
+    // 2. Read the requested session shape (instructions/voice/language come from the page)
     const instructions = String(body.instructions || '').slice(0, 6000);
     const voice = ['marin', 'cedar', 'alloy', 'ash', 'ballad', 'coral', 'echo', 'sage', 'shimmer', 'verse'].includes(body.voice) ? body.voice : 'marin';
     const language = /^[a-z]{2}$/.test(String(body.language || '')) ? body.language : undefined;
@@ -86,4 +88,68 @@ export default {
 async function sha256Hex(s) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ---- Question generation (adaptive difficulty) ----
+const LEVEL_GUIDE = {
+  en: {
+    A2: 'CEFR A2: everyday and simple workplace words, present/past/future, short sentences.',
+    B1: 'CEFR B1: common business vocabulary, present perfect, conditionals, polite requests, short emails.',
+    B2: 'CEFR B2: nuanced business vocabulary, phrasal verbs, collocations, register (formal vs casual), longer emails and reports, inference questions.',
+    C1: 'CEFR C1: advanced and formal vocabulary, subtle distinctions between near-synonyms, idioms, hedging, negotiation language, dense passages requiring inference. Distractors must be plausible for an advanced learner.',
+  },
+  jp: {
+    N5: 'JLPT N5: basic everyday vocabulary and kanji, です/ます, particles, very short texts.',
+    N4: 'JLPT N4: everyday and simple workplace vocabulary, ～ことができる, ～ようになる, te-form patterns, short notices.',
+    N3: 'JLPT N3: workplace vocabulary, intermediate grammar (～ば, ～たばかり, ～ように, 敬語の基本), medium-length emails and notices.',
+    N2: 'JLPT N2: abstract and business vocabulary, advanced grammar (～にもかかわらず, ～わけではない, ～ざるを得ない), 敬語, longer business texts with inference.',
+    N1: 'JLPT N1: advanced vocabulary, formal/written expressions, subtle grammar distinctions, dense passages. Distractors must be plausible for an advanced learner.',
+  },
+};
+const FORMAT_GUIDE = {
+  en: 'The learner is a Japanese adult. Question text (q) and explanation (exp) are for a Japanese reader. Categories and formats:\n' +
+      '- vocab: q = "\"<word>\" の意味は？", options a-d are Japanese meanings (a = correct), exp = "例: <natural English example sentence>".\n' +
+      '- grammar: q = an English sentence with ＿ for the blank, optionally a short Japanese hint in parentheses; options are English; exp = one-line Japanese explanation of the rule.\n' +
+      '- expressions: q = a Japanese situation + "自然な言い方は？"; options are English sentences (a = the natural one); exp = short Japanese note.\n' +
+      '- reading: q = a short English passage (email/notice, 2-4 sentences, in quotes) followed by a Japanese comprehension question; options in Japanese or English as natural; exp = short Japanese explanation.',
+  jp: 'The learner is an English-speaking adult. Question text (q) and explanation (exp) are for an English reader. Categories and formats:\n' +
+      '- vocab: q = "<reading in hiragana> (<kanji>)", options a-d are English meanings (a = correct), exp = short note with one Japanese usage example.\n' +
+      '- kanji: q = "How do you read <kanji word>?", options are hiragana readings (a = correct), exp = "<word> = <meaning>".\n' +
+      '- grammar: q = a Japanese sentence with ＿ for the blank plus a short English hint in parentheses; options are Japanese; exp = one-line English explanation of the pattern.\n' +
+      '- reading: q = a short Japanese passage in 「」 (2-4 sentences, workplace notice/email) followed by an English comprehension question; options in English; exp = short English explanation quoting the key phrase.',
+};
+const CATS = { en: ['vocab', 'grammar', 'expressions', 'reading'], jp: ['vocab', 'kanji', 'grammar', 'reading'] };
+
+async function generateQuestions(body, env, json) {
+  const course = body.course === 'jp' ? 'jp' : 'en';
+  const levels = Object.keys(LEVEL_GUIDE[course]);
+  const level = levels.includes(body.level) ? body.level : (course === 'jp' ? 'N4' : 'B1');
+  const n = Math.min(Math.max(parseInt(body.n, 10) || 20, 1), 40);
+  const avoid = Array.isArray(body.avoid) ? body.avoid.map(String).slice(0, 800) : [];
+  const mix = course === 'jp' ? { vocab: 0.5, kanji: 0.2, grammar: 0.2, reading: 0.1 } : { vocab: 0.55, grammar: 0.2, expressions: 0.15, reading: 0.1 };
+  const counts = {}; let left = n;
+  CATS[course].forEach((c, i) => { counts[c] = i === CATS[course].length - 1 ? left : Math.round(n * mix[c]); left -= counts[c]; });
+  const dev = 'You write multiple-choice practice questions for a language-learning app. Output JSON only, matching the schema. ' +
+    'Exactly one correct option, always placed in "a" (the app shuffles). Distractors must be the same part of speech / same kind and plausible at this level. ' +
+    'Each question must introduce ONE new target word or pattern, different from every other question and from the avoid list. Keep q under 200 characters except reading passages (under 400). ' +
+    'Level: ' + LEVEL_GUIDE[course][level] + '\n' + FORMAT_GUIDE[course];
+  const user = 'Generate ' + n + ' questions: ' + Object.keys(counts).map(c => counts[c] + ' ' + c).join(', ') + '. Topic mix: workplace, email, meetings, IT/software, daily life, travel. ' +
+    (avoid.length ? 'Avoid these target words/items (already used): ' + avoid.join(', ') : '');
+  const schema = { type: 'object', additionalProperties: false, required: ['questions'], properties: { questions: { type: 'array', items: { type: 'object', additionalProperties: false,
+    required: ['cat', 'q', 'a', 'b', 'c', 'd', 'exp'], properties: { cat: { type: 'string', enum: CATS[course] }, q: { type: 'string' }, a: { type: 'string' }, b: { type: 'string' }, c: { type: 'string' }, d: { type: 'string' }, exp: { type: 'string' } } } } } };
+  const r = await fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { Authorization: 'Bearer ' + env.OPENAI_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: env.GEN_MODEL || 'gpt-5.4-mini', reasoning: { effort: 'low' }, input: [{ role: 'developer', content: dev }, { role: 'user', content: user }],
+      text: { format: { type: 'json_schema', name: 'questions', strict: true, schema } } }) });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) return json(r.status, { error: 'openai: ' + (data.error && data.error.message || r.statusText) });
+  let txt = data.output_text || '';
+  if (!txt) (data.output || []).forEach(o => (o.content || []).forEach(c => { if (c.type === 'output_text') txt += c.text; }));
+  let parsed; try { parsed = JSON.parse(txt); } catch (e) { return json(502, { error: 'bad JSON from model' }); }
+  const avoidSet = new Set(avoid.map(s => s.toLowerCase()));
+  const seen = new Set();
+  const rows = (parsed.questions || []).filter(x => x && x.q && x.a && x.b && CATS[course].includes(x.cat)).filter(x => {
+    const key = (x.q.match(/[「"“]([^」"”]+)[」"”]/) || [])[1] || x.q; const k = key.toLowerCase();
+    if (seen.has(k) || avoidSet.has(k)) return false; seen.add(k); return true;
+  }).map(x => [x.cat, x.q, x.a, x.b, x.c || '', x.d || '', 'A', x.exp || '']);
+  return json(200, { rows, level, course, model: env.GEN_MODEL || 'gpt-5.4-mini', usage: data.usage || null });
 }

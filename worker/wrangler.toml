@@ -7,6 +7,7 @@ ALLOWED_ORIGINS = "https://choreia.github.io,http://localhost:8000,http://127.0.
 ALLOWED_DOMAINS = "m2-labo.jp,m2-labo.in"
 GOOGLE_CLIENT_ID = "595564106580-hsrunbvfacmr23d2jopl462taqilip75.apps.googleusercontent.com"
 REALTIME_MODEL = "gpt-realtime-2.1-mini"
+GEN_MODEL = "gpt-5.4-mini"
 TOKEN_TTL_SECONDS = "300"
 # Secret (set with: npx wrangler secret put OPENAI_API_KEY)
 # OPENAI_API_KEY

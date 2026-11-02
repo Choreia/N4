@@ -291,11 +291,11 @@ var VOICE_MAX_SEC=600; // 1セッション上限(秒)
 var VOICE_FIELDS=['at','email','name','session','mode','course','role','text','sec'];
 var VOICE_SHEET={title:'会話ログ',fields:VOICE_FIELDS,headers:['日時','メール','氏名','セッション','モード(speaking/listening)','コース','役割(user/tutor/score/end)','発話(scoreはJSON)','経過秒']};
 
-var Q_FIELDS=['id','cat','q','a','b','c','d','ans','exp','active','course'];
+var Q_FIELDS=['id','cat','q','a','b','c','d','ans','exp','active','course','level'];
 var LOG_FIELDS=['at','email','name','session','qid','cat','q','choice','correct','sec','course'];
 var SETTING_FIELDS=['key','value'];
 var SHEET_DEFS=[
-  {title:'問題',fields:Q_FIELDS,headers:['ID','分野','問題','選択肢A','選択肢B','選択肢C','選択肢D','正解(A-D)','解説','有効(yes/no)','コース(jp/en)']},
+  {title:'問題',fields:Q_FIELDS,headers:['ID','分野','問題','選択肢A','選択肢B','選択肢C','選択肢D','正解(A-D)','解説','有効(yes/no)','コース(jp/en)','レベル(A2/B1/B2/C1・N5-N1)']},
   {title:'回答ログ',fields:LOG_FIELDS,headers:['日時','メール','氏名','セッション','問題ID','分野','問題','回答','正誤(1/0)','回答秒数','コース']},
   {title:'設定',fields:SETTING_FIELDS,headers:['キー','値']}
 ];
@@ -310,8 +310,8 @@ var UI={
   en:{study:'Study',progress:'Progress',pick:'Pick a category and the number of questions. Each answer and its time are saved.',all:'All categories',allsub:'ぜんぶ',questions:'questions',nq:'Questions:',start:'Start ▶',today:'Today',total:'Total',answers:'answers',noq:'No questions yet. Ask the admin to fill the 問題 sheet.',next:'Next ▶',results:'See results',quit:'Quit',correct:'Correct!',wrong:'Not quite.',pct:'correct',totaltime:'total',perq:'per question',q:'Question',your:'Your answer',result:'Result',time:'Time',again:'Study again',unsaved:'answers not yet saved.',retry:'Retry',learner:'Learner',none:'No answers yet.',acc:'accuracy',avg:'avg time / question',days:'days studied',bycat:'By category',category:'Category',sessions:'Recent sessions',date:'Date',score:'Score',review:'Needs review',mixed:'Mixed',course:'Course',nocat:'No questions in this category',set:'Daily set',setdesc:'20 new questions every day, repeated three times (9:00 / 13:00 / 17:00). Tomorrow moves on to the next 20.',day:'Day',startset:'Start the set ▶',mastered:'Mastered',lastrun:'Last run',prevrun:'Previous run',thisrun:'this run',free:'Free practice',sethist:'Daily set history',slot:'Slot'},
   ja:{study:'学習',progress:'進捗',pick:'分野と問題数を選んでください。回答と回答時間は1問ごとに記録されます。',all:'全分野',allsub:'All',questions:'問',nq:'問題数:',start:'開始 ▶',today:'今日',total:'累計',answers:'問',noq:'問題がまだありません。管理者が「問題」シートに追加してください。',next:'次へ ▶',results:'結果を見る',quit:'中断',correct:'正解！',wrong:'不正解',pct:'正答率',totaltime:'合計',perq:'1問あたり',q:'問題',your:'あなたの回答',result:'正誤',time:'時間',again:'もう一度',unsaved:'件の回答が未保存です。',retry:'再試行',learner:'学習者',none:'まだ回答がありません。',acc:'正答率',avg:'平均回答時間',days:'学習日数',bycat:'分野別',category:'分野',sessions:'最近のセッション',date:'日時',score:'得点',review:'要復習',mixed:'複数',course:'コース',nocat:'この分野の問題がありません',set:'今日のセット',setdesc:'1日20問を覚えます。同じ20問を9時・13時・17時の3回繰り返し、翌日は次の20問に進みます。',day:'Day',startset:'セットを始める ▶',mastered:'習得済み',lastrun:'前回',prevrun:'前回',thisrun:'今回',free:'自由練習',sethist:'セットの履歴',slot:'回'}
 };
-Object.assign(UI.en,{voice:'Voice',speaking:'Speaking',listening:'Listening',voicedesc:"Practice with an AI tutor using today's set. Speaking: a conversation where you try to use each word. Listening: the tutor reads a short sentence and asks a question about it. Everything you both say is saved as text, so your progress can be reviewed.",startvoice:'Start ▶',endvoice:'End session',connecting:'Connecting…',live:'Live — speak when the tutor pauses',ending:'Getting feedback…',ended:'Session ended',micerr:'Microphone not available',tutor:'Tutor',you:'You',todaywords:"Today's words",voicehist:'Voice sessions',turns:'your turns',minutes:'min',mode:'Mode',notconfigured:'Voice is not set up yet on the server. Ask the admin.',limit:'A session ends automatically after 10 minutes. Use earphones to avoid echo.',speakdesc:'Conversation. The tutor asks short questions so that you use today\'s words.',listendesc:'The tutor reads one sentence per word, then asks a question. Answer by voice.',transcript:'Transcript',lastsession:'Last session',score:'Score',fluency:'Fluency',accuracy:'Accuracy',vocabuse:"Today's words",wordsused:'Words you used',good:'Good',fix:'To fix',scoring:'Scoring…',skillmeter:'Skill meter',compare:'Compare with',radardesc:'0–100 per axis. Words = mastered share of the words introduced so far; accuracy and speed = quiz, last 7 days; consistency = daily-set slots done in the last 7 days; speaking/listening = tutor scores of the last 5 sessions.',learners:'Learners',radar_vocab:'Words',radar_accuracy:'Accuracy',radar_speed:'Speed',radar_consistency:'Consistency',radar_speaking:'Speaking',radar_listening:'Listening'});
-Object.assign(UI.ja,{voice:'音声',speaking:'スピーキング',listening:'リスニング',voicedesc:'今日のセットの単語でAI講師と練習します。スピーキング=単語を使う会話、リスニング=講師が短い文を読み上げて質問します。双方の発話は文字で保存され、あとから振り返れます。',startvoice:'開始 ▶',endvoice:'終了する',connecting:'接続中…',live:'会話中 — 講師が止まったら話してください',ending:'講評を待っています…',ended:'終了しました',micerr:'マイクを使えません',tutor:'講師',you:'あなた',todaywords:'今日の単語',voicehist:'音声セッション',turns:'あなたの発話',minutes:'分',mode:'モード',notconfigured:'音声機能はまだサーバー側の設定が済んでいません。管理者に連絡してください。',limit:'1セッションは10分で自動終了します。エコー防止のためイヤホン推奨。',speakdesc:'会話。講師が短い質問をして、今日の単語を使う場面を作ります。',listendesc:'講師が単語ごとに1文を読み上げて質問します。声で答えてください。',transcript:'会話の記録',lastsession:'前回',score:'スコア',fluency:'流暢さ',accuracy:'正確さ',vocabuse:'今日の単語',wordsused:'使えた単語',good:'良かった点',fix:'直す点',scoring:'採点中…',skillmeter:'スキルメーター',compare:'比較',radardesc:'各軸0〜100。習得=これまで出た単語のうち習得済みの割合／正確さ・速さ=直近7日のクイズ／継続=直近7日のセット実施回数／スピーキング・リスニング=直近5回の講師スコア。',learners:'学習者',radar_vocab:'習得',radar_accuracy:'正確さ',radar_speed:'速さ',radar_consistency:'継続',radar_speaking:'スピーキング',radar_listening:'リスニング'});
+Object.assign(UI.en,{voice:'Voice',speaking:'Speaking',listening:'Listening',voicedesc:"Practice with an AI tutor using today's set. Speaking: a conversation where you try to use each word. Listening: the tutor reads a short sentence and asks a question about it. Everything you both say is saved as text, so your progress can be reviewed.",startvoice:'Start ▶',endvoice:'End session',connecting:'Connecting…',live:'Live — speak when the tutor pauses',ending:'Getting feedback…',ended:'Session ended',micerr:'Microphone not available',tutor:'Tutor',you:'You',todaywords:"Today's words",voicehist:'Voice sessions',turns:'your turns',minutes:'min',mode:'Mode',notconfigured:'Voice is not set up yet on the server. Ask the admin.',limit:'A session ends automatically after 10 minutes. Use earphones to avoid echo.',speakdesc:'Conversation. The tutor asks short questions so that you use today\'s words.',listendesc:'The tutor reads one sentence per word, then asks a question. Answer by voice.',transcript:'Transcript',lastsession:'Last session',score:'Score',fluency:'Fluency',accuracy:'Accuracy',vocabuse:"Today's words",wordsused:'Words you used',good:'Good',fix:'To fix',scoring:'Scoring…',skillmeter:'Skill meter',compare:'Compare with',radardesc:'0–100 per axis. Words = mastered share of the words introduced so far; accuracy and speed = quiz, last 7 days; consistency = daily-set slots done in the last 7 days; speaking/listening = tutor scores of the last 5 sessions.',learners:'Learners',radar_vocab:'Words',radar_accuracy:'Accuracy',radar_speed:'Speed',radar_consistency:'Consistency',radar_speaking:'Speaking',radar_listening:'Listening',level:'Level',levelauto:'Adjusts automatically from your results (3 sets ≥90% and ≤4 s → up; 3 sets <60% → down). You can also change it here.',generating:'Generating new questions for your level…',generated:'new questions added',genfail:'Could not generate questions:',newtoday:'new today',leveledup:'Level up!',leveleddown:'Level adjusted',remaining:'left at this level'});
+Object.assign(UI.ja,{voice:'音声',speaking:'スピーキング',listening:'リスニング',voicedesc:'今日のセットの単語でAI講師と練習します。スピーキング=単語を使う会話、リスニング=講師が短い文を読み上げて質問します。双方の発話は文字で保存され、あとから振り返れます。',startvoice:'開始 ▶',endvoice:'終了する',connecting:'接続中…',live:'会話中 — 講師が止まったら話してください',ending:'講評を待っています…',ended:'終了しました',micerr:'マイクを使えません',tutor:'講師',you:'あなた',todaywords:'今日の単語',voicehist:'音声セッション',turns:'あなたの発話',minutes:'分',mode:'モード',notconfigured:'音声機能はまだサーバー側の設定が済んでいません。管理者に連絡してください。',limit:'1セッションは10分で自動終了します。エコー防止のためイヤホン推奨。',speakdesc:'会話。講師が短い質問をして、今日の単語を使う場面を作ります。',listendesc:'講師が単語ごとに1文を読み上げて質問します。声で答えてください。',transcript:'会話の記録',lastsession:'前回',score:'スコア',fluency:'流暢さ',accuracy:'正確さ',vocabuse:'今日の単語',wordsused:'使えた単語',good:'良かった点',fix:'直す点',scoring:'採点中…',skillmeter:'スキルメーター',compare:'比較',radardesc:'各軸0〜100。習得=これまで出た単語のうち習得済みの割合／正確さ・速さ=直近7日のクイズ／継続=直近7日のセット実施回数／スピーキング・リスニング=直近5回の講師スコア。',learners:'学習者',radar_vocab:'習得',radar_accuracy:'正確さ',radar_speed:'速さ',radar_consistency:'継続',radar_speaking:'スピーキング',radar_listening:'リスニング',level:'レベル',levelauto:'成績から自動調整します(3セット連続で正答率90%以上かつ平均4秒以下→上げる／3セット連続60%未満→下げる)。ここで手動変更もできます。',generating:'あなたのレベルの新しい問題を生成しています…',generated:'問を追加しました',genfail:'問題を生成できませんでした:',newtoday:'今日の新出',leveledup:'レベルアップ！',leveleddown:'レベルを調整しました',remaining:'このレベルの残り'});
 function T(k){return (UI[COURSES[course].ui]||UI.en)[k]||k;}
 function catLabel(id){var cs=COURSES[course].cats;for(var i=0;i<cs.length;i++)if(cs[i].id===id)return cs[i].label;return id;}
 
@@ -1187,7 +1187,7 @@ async function confirmSetup(){
   }catch(e){showToast('セットアップに失敗しました: '+e.message);b.disabled=false;updateSetupBtn();console.error(e);}
 }
 
-function seedRowsFor(courses,startN){var rows=[],n=startN;courses.forEach(function(c){COURSES[c].seed().forEach(function(r){n++;rows.push([c.toUpperCase()+'-'+pad(n).padStart(4,'0'),r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],'yes',c]);});});return rows;}
+function seedRowsFor(courses,startN){var rows=[],n=startN;courses.forEach(function(c){COURSES[c].seed().forEach(function(r){n++;rows.push([c.toUpperCase()+'-'+pad(n).padStart(4,'0'),r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],'yes',c,DEFAULT_LEVEL[c]]);});});return rows;}
 async function addMissingSeeds(){
   var missing=Object.keys(COURSES).filter(function(c){return !questions.some(function(q){return q.course===c;});});
   if(!missing.length){showToast('すべてのコースに問題があります');return;}
@@ -1199,10 +1199,11 @@ async function addMissingSeeds(){
   }catch(e){showToast('追加に失敗しました: '+e.message);console.error(e);}
 }
 async function ensureCourseColumns(){
-  try{var r=await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+getSheetId()+'/values:batchGet?ranges='+encodeURIComponent('問題!K1')+'&ranges='+encodeURIComponent('回答ログ!K1'));
+  try{var r=await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+getSheetId()+'/values:batchGet?ranges='+encodeURIComponent('問題!K1')+'&ranges='+encodeURIComponent('回答ログ!K1')+'&ranges='+encodeURIComponent('問題!L1'));
     var vr=r.valueRanges||[];var data=[];
     if(!(vr[0]&&vr[0].values&&vr[0].values[0]&&vr[0].values[0][0]))data.push({range:'問題!K1',values:[['コース(jp/en)']]});
     if(!(vr[1]&&vr[1].values&&vr[1].values[0]&&vr[1].values[0][0]))data.push({range:'回答ログ!K1',values:[['コース']]});
+    if(!(vr[2]&&vr[2].values&&vr[2].values[0]&&vr[2].values[0][0]))data.push({range:'問題!L1',values:[['レベル(A2/B1/B2/C1・N5-N1)']]});
     if(data.length)await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+getSheetId()+'/values:batchUpdate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({valueInputOption:'RAW',data:data})});
   }catch(e){console.error('ensureCourseColumns',e);}
 }
@@ -1218,7 +1219,7 @@ async function loadAllData(){
   var ranges=SHEET_DEFS.map(function(s){return 'ranges='+encodeURIComponent(s.title+'!A2:'+colLetter(s.fields.length)+'20000');}).join('&');
   var data=await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+id+'/values:batchGet?'+ranges);
   var vr=data.valueRanges||[];
-  questions=parseRows(vr[0]&&vr[0].values,Q_FIELDS).filter(function(q){return String(q.active||'yes').toLowerCase()!=='no'&&q.q&&q.a&&q.b;});questions.forEach(function(q){q.course=(q.course||'jp').toLowerCase();});
+  questions=parseRows(vr[0]&&vr[0].values,Q_FIELDS).filter(function(q){return String(q.active||'yes').toLowerCase()!=='no'&&q.q&&q.a&&q.b;});questions.forEach(function(q){q.course=(q.course||'jp').toLowerCase();q.level=String(q.level||DEFAULT_LEVEL[q.course]||'').toUpperCase();});
   logs=parseRows(vr[1]&&vr[1].values,LOG_FIELDS);logs.forEach(function(l){l.course=(l.course||'jp').toLowerCase();});
   ensureCourseColumns();
   sheetSettings={};parseRows(vr[2]&&vr[2].values,SETTING_FIELDS).forEach(function(r){sheetSettings[r.key]=r.value;});SLOTS=slotsFromSettings();
@@ -1256,6 +1257,63 @@ function myLogs(email){email=(email||currentUser.email).toLowerCase();return log
 function courseQs(){return questions.filter(function(q){return q.course===course;});}
 function setCourse(c){if(!COURSES[c])return;course=c;studyCat='all';try{localStorage.setItem(COURSE_KEY,c);}catch(e){}render();}
 function courseSwitch(){return '<div class="seg" style="margin-bottom:14px">'+Object.keys(COURSES).map(function(c){return '<button class="'+(course===c?'on':'')+'" onclick="setCourse(\''+c+'\')">'+COURSES[c].label+' <small style="opacity:.7">'+COURSES[c].sub+'</small></button>';}).join('')+'</div>';}
+// ==================== Levels (per learner, auto-adjusted) ====================
+var LEVELS={en:['A2','B1','B2','C1'],jp:['N5','N4','N3','N2','N1']};
+var DEFAULT_LEVEL={en:'B1',jp:'N4'};
+var LEVEL_DESC={
+  en:{A2:'basic everyday & work words',B1:'common business English',B2:'nuanced business English, phrasal verbs, register',C1:'advanced: formal register, idioms, subtle distinctions'},
+  jp:{N5:'basic',N4:'everyday & simple workplace',N3:'intermediate workplace Japanese',N2:'business Japanese, 敬語, abstract words',N1:'advanced written & formal Japanese'}};
+function levelKey(email,c){return 'level:'+(email||currentUser.email).toLowerCase()+':'+c;}
+function learnerLevel(email,c){c=c||course;var v=String(sheetSettings[levelKey(email,c)]||'').toUpperCase();return LEVELS[c].indexOf(v)!==-1?v:DEFAULT_LEVEL[c];}
+function levelIdx(email,c){c=c||course;return LEVELS[c].indexOf(learnerLevel(email,c));}
+async function setLearnerLevel(email,c,lv,reason){
+  if(LEVELS[c].indexOf(lv)===-1)return;
+  try{await saveSetting(levelKey(email,c),lv);var hist=String(sheetSettings['levelhist:'+(email||currentUser.email).toLowerCase()+':'+c]||'');hist=(hist?hist+';':'')+todayISO()+':'+lv+(reason?'('+reason+')':'');await saveSetting('levelhist:'+(email||currentUser.email).toLowerCase()+':'+c,hist.slice(-400));}
+  catch(e){showToast('Level save failed: '+e.message);return;}
+  render();
+}
+function poolQs(email){var lv=learnerLevel(email,course);return courseQs().filter(function(q){return q.level===lv;});}
+function levelBadge(email){var lv=learnerLevel(email,course);return '<span class="badge b-info" title="'+escapeAttr(LEVEL_DESC[course][lv]||'')+'">'+lv+'</span>';}
+function levelSelect(email){
+  email=(email||currentUser.email).toLowerCase();if(email!==currentUser.email.toLowerCase()&&!isAdmin())return levelBadge(email);
+  return '<select onchange="setLearnerLevel(\''+escapeAttr(email)+'\',course,this.value,\'manual\')">'+LEVELS[course].map(function(l){return '<option value="'+l+'" '+(l===learnerLevel(email,course)?'selected':'')+'>'+l+' — '+escapeHtml(LEVEL_DESC[course][l])+'</option>';}).join('')+'</select>';
+}
+// 直近の成績からレベルを自動調整(セット完了時に呼ぶ)。上げる=直近3セット全て正答率90%以上かつ平均4秒以下(または85%以上+直近スピーキング85点以上)。下げる=直近3セット全て60%未満。
+function autoLevelCheck(){
+  var email=currentUser.email.toLowerCase();var ss=setSessions(email).slice(0,3);if(ss.length<3)return null;
+  var lv=learnerLevel(email,course);var since=lastLevelChangeDate(email,course);
+  if(ss.some(function(a){return (a[0].at||'').slice(0,10)<since;}))return null; // レベル変更前のセットは数えない
+  var st=ss.map(stats);var vs=voiceSessions(email).map(voiceSessionSummary).filter(function(s){return s.score&&s.mode==='speaking';});var vbest=vs.length?vs[0].score.score:0;
+  var strong=st.every(function(s){return s.acc>=90&&s.avg<=4;})||(st.every(function(s){return s.acc>=85;})&&vbest>=85);
+  var weak=st.every(function(s){return s.acc<60;});
+  var i=LEVELS[course].indexOf(lv);
+  if(strong&&i<LEVELS[course].length-1)return {to:LEVELS[course][i+1],dir:'up'};
+  if(weak&&i>0)return {to:LEVELS[course][i-1],dir:'down'};
+  return null;
+}
+function lastLevelChangeDate(email,c){var h=String(sheetSettings['levelhist:'+email+':'+c]||'');var parts=h.split(';').filter(Boolean);return parts.length?parts[parts.length-1].slice(0,10):'';}
+// ==================== Question generation (via Worker) ====================
+var generating=false;
+async function generateQuestions(c,lv,n,silent){
+  if(generating)return 0;generating=true;
+  try{
+    if(!silent)showToast(T('generating'));
+    var avoid=questions.filter(function(q){return q.course===c;}).map(wordOf).slice(-600);
+    var call=async function(){return fetch(VOICE_TOKEN_URL.replace(/\/token$/,'/generate'),{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+accessToken},body:JSON.stringify({course:c,level:lv,n:n,avoid:avoid})});};
+    var r=await call();if(r.status===401){await refreshAccessToken();r=await call();}
+    var d={};try{d=await r.json();}catch(e){}
+    if(!r.ok)throw new Error(d.error||('generate '+r.status));
+    var rows=d.rows||[];if(!rows.length)throw new Error('no questions generated');
+    var prefix=c.toUpperCase();var mx=0;questions.forEach(function(q){var m=String(q.id||'').match(new RegExp('^'+prefix+'-(\\d+)$'));if(m)mx=Math.max(mx,parseInt(m[1],10));});
+    var values=rows.map(function(r,i){return [prefix+'-'+pad(mx+1+i).padStart(4,'0'),r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],'yes',c,lv];});
+    await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+getSheetId()+'/values/'+encodeURIComponent('問題!A:ZZ')+':append?valueInputOption=RAW&insertDataOption=INSERT_ROWS',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:values})});
+    await loadAllDataSafe();
+    showToast(values.length+' '+T('generated'));
+    return values.length;
+  }catch(e){console.error('generate',e);showToast(T('genfail')+' '+e.message);return 0;}
+  finally{generating=false;}
+}
+async function adminGenerate(){var c=document.getElementById('gen-course').value;var lv=document.getElementById('gen-level').value;var n=parseInt(document.getElementById('gen-n').value,10)||20;await generateQuestions(c,lv,n);render();}
 // ==================== Fixed set (same N questions, 3 times a day) ====================
 var SLOTS=[9,13,17]; // 設定シート slots で上書き(loadAllData)
 function setSize(){var n=parseInt(sheetSettings.set_size,10);return n>0?n:20;}
@@ -1264,8 +1322,16 @@ function masteryOf(email){ // qid -> {streak, n, c}
 function isMastered(x){return !!x&&x.streak>=3;}
 function dayIndex(email){ // 今日より前に「セット」をやった日数 = 今日は何日目か(0始まり)
   var t=todayISO(),d={};setSessions(email).forEach(function(a){var day=(a[0].at||'').slice(0,10);if(day&&day<t)d[day]=1;});return Object.keys(d).length;}
-function currentSet(email){var qs=courseQs();var n=setSize();if(!qs.length)return [];var start=(dayIndex(email)*n)%qs.length;var out=qs.slice(start,start+n);if(out.length<n)out=out.concat(qs.slice(0,n-out.length));return out;}
-function setRangeLabel(email){var qs=courseQs();var n=setSize();if(!qs.length)return '';var start=(dayIndex(email)*n)%qs.length;return (start+1)+'–'+Math.min(start+n,qs.length);}
+function currentSet(email){
+  var n=setSize();var t=todayISO();
+  var todays=setSessions(email).filter(function(a){return (a[0].at||'').slice(0,10)===t;});
+  if(todays.length){var first=todays[todays.length-1];var ids={};first.forEach(function(l){ids[l.qid]=1;});var fixed=courseQs().filter(function(q){return ids[q.id];});if(fixed.length)return fixed;}
+  var pool=poolQs(email);if(!pool.length)return [];
+  var m=masteryOf(email);var fresh=pool.filter(function(q){return !isMastered(m[q.id]);});
+  return fresh.slice(0,n);
+}
+function setNeed(email){var n=setSize();var m=masteryOf(email);var fresh=poolQs(email).filter(function(q){return !isMastered(m[q.id]);});return Math.max(0,n-fresh.length);}
+function setRangeLabel(email){return learnerLevel(email,course);}
 function masteredCount(email){var m=masteryOf(email);return courseQs().filter(function(q){return isMastered(m[q.id]);}).length;}
 function slotOf(at){var h=parseInt(String(at||'').slice(11,13),10);if(isNaN(h))return -1;var best=0;SLOTS.forEach(function(s,i){if(Math.abs(h-s)<Math.abs(h-SLOTS[best]))best=i;});return best;}
 function setSessions(email){ // sessions of set mode (id starts with T), newest first
@@ -1273,7 +1339,9 @@ function setSessions(email){ // sessions of set mode (id starts with T), newest 
   return Object.keys(ss).map(function(k){return ss[k];}).sort(function(a,b){return a[0].at<b[0].at?1:-1;});}
 function todaySlots(email){var t=todayISO();var done=SLOTS.map(function(){return false;});setSessions(email).forEach(function(a){if((a[0].at||'').slice(0,10)===t)done[slotOf(a[0].at)]=true;});return done;}
 function slotsHtml(email){var d=todaySlots(email);return '<span class="chain" style="display:inline-flex;gap:10px">'+SLOTS.map(function(h,i){return '<span class="badge '+(d[i]?'b-ok':'')+'">'+h+(course==='en'?'時':':00')+' '+(d[i]?'✓':'–')+'</span>';}).join('')+'</span>';}
-function startSet(){
+async function startSet(){
+  var need=setNeed();var todays=setSessions().some(function(a){return (a[0].at||'').slice(0,10)===todayISO();});
+  if(need>0&&!todays){var added=await generateQuestions(course,learnerLevel(),Math.max(need,setSize()));if(!added&&!currentSet().length){return;}}
   var qs=currentSet();if(!qs.length){showToast(T('nocat'));return;}
   quiz={session:'T'+Date.now().toString(36),cat:'set',i:0,startedAt:Date.now(),qStart:0,items:shuffle(qs.slice()).map(function(q){
     var opts=[{letter:'A',text:q.a},{letter:'B',text:q.b},{letter:'C',text:q.c},{letter:'D',text:q.d}].filter(function(o){return o.text;});
@@ -1285,9 +1353,10 @@ function renderStudyHome(){
   var qs=courseQs();
   var h='<h2>'+T('study')+'</h2>'+courseSwitch();
   var cs=currentSet();var ms=masteredCount();var ss=setSessions();var last=ss.length?stats(ss[0]):null;
-  h+='<div class="card" style="margin-bottom:18px"><h3 style="margin-top:0">'+T('set')+' · '+T('day')+' '+(dayIndex()+1)+' · #'+setRangeLabel()+'</h3>';
+  h+='<div class="card" style="margin-bottom:18px"><h3 style="margin-top:0">'+T('set')+' · '+T('day')+' '+(dayIndex()+1)+' · '+levelBadge()+'</h3>';
+  h+='<p style="margin:0 0 8px;font-size:.85rem">'+T('level')+': '+levelSelect()+' <span class="hint">'+T('levelauto')+'</span></p>';
   h+='<p style="margin:4px 0 10px">'+T('setdesc')+'</p>';
-  h+='<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+slotsHtml()+'<span class="hint">'+T('mastered')+' '+ms+' / '+courseQs().length+'</span>'+(last?'<span class="hint">'+T('lastrun')+' '+last.c+'/'+last.n+' · '+last.avg.toFixed(1)+'s</span>':'')+'<span class="spacer"></span><button class="btn" onclick="startSet()">'+T('startset')+'</button></div></div>';
+  h+='<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+slotsHtml()+'<span class="hint">'+T('mastered')+' '+ms+' / '+courseQs().length+' · '+T('remaining')+' '+poolQs().filter(function(q){return !isMastered(masteryOf()[q.id]);}).length+'</span>'+(last?'<span class="hint">'+T('lastrun')+' '+last.c+'/'+last.n+' · '+last.avg.toFixed(1)+'s</span>':'')+'<span class="spacer"></span><button class="btn" onclick="startSet()">'+T('startset')+'</button></div></div>';
   h+='<h3>'+T('free')+'</h3><p class="viewdesc">'+T('pick')+'</p>';
   if(!freePracticeOn()){if(!qs.length)h+='<div class="emptybox">'+T('noq')+(isAdmin()?'<br><button class="btn small" style="margin-top:10px" onclick="addMissingSeeds()">このコースの初期問題('+COURSES[course].seed().length+'問)をシートに追加</button>':'')+'</div>';return h;}
   h+='<div class="catgrid">';
@@ -1338,7 +1407,7 @@ function answer(letter){
   queueLog({at:nowISO(),email:currentUser.email,name:currentUser.name,session:quiz.session,qid:it.q.id,cat:it.q.cat,q:it.q.q,choice:chosen,correct:it.correct?'1':'0',sec:String(it.sec),course:course});
   render();
 }
-function nextQ(){if(quiz.i+1<quiz.items.length){quiz.i++;render();}else{quiz.done=true;document.getElementById('main').innerHTML=renderResult();}}
+function nextQ(){if(quiz.i+1<quiz.items.length){quiz.i++;render();}else{quiz.done=true;document.getElementById('main').innerHTML=renderResult();if(quiz.cat==='set'){var ch=autoLevelCheck();if(ch){var from=learnerLevel();setLearnerLevel(currentUser.email,course,ch.to,'auto').then(function(){showToast((ch.dir==='up'?T('leveledup'):T('leveleddown'))+' '+from+' → '+ch.to);});}}}}
 function quitQuiz(){clearInterval(_timerIv);quiz=null;render();}
 function renderResult(){
   var n=quiz.items.length,c=quiz.items.filter(function(x){return x.correct;}).length;var secs=quiz.items.reduce(function(s,x){return s+(x.sec||0);},0);
@@ -1363,11 +1432,12 @@ function voiceMaterial(qs){
 }
 function buildInstructions(mode,qs){
   var tl=targetLang(),hl=helperLang();
-  var level=course==='jp'?'JLPT N4 (simple vocabulary, short sentences, polite です/ます form, speak slowly and clearly)':'CEFR A2–B1 (simple vocabulary, short sentences, natural but clear speed)';
+  var lv=learnerLevel();var level=voiceLevelText(lv);
   var who=course==='jp'?'an English-speaking adult learner of Japanese who works at a Japanese company':'a Japanese adult learner of English who works at a Japanese company';
   var s='You are a friendly, patient language tutor for '+who+'. Level: '+level+'.\n';
   s+='Speak ONLY in '+tl+'. Use '+hl+' only for a one-phrase hint when the learner is clearly stuck, then return to '+tl+'.\n';
   s+='Keep every turn short: at most 2 sentences, then stop and wait for the learner. Never lecture. This is audio only; never spell things out or mention text.\n';
+  var weak=recentWeakPoints();if(weak.length)s+='Recent weak points of this learner (work them in naturally and correct them when they recur): '+weak.join(' / ')+'\n';
   s+='Today\'s study items (question → answer). Each item contains one target word or pattern; use the target words, not the quiz wording:\n'+voiceMaterial(qs)+'\n\n';
   if(mode==='speaking'){
     s+='MODE: Speaking practice. Have a natural conversation about daily life and work. Ask one short question at a time, designed so the learner can answer with one of today\'s words. Go through as many of the words as possible. ';
@@ -1380,6 +1450,12 @@ function buildInstructions(mode,qs){
   }
   return s;
 }
+function voiceLevelText(lv){
+  var m={A2:'CEFR A2 — simple words, short sentences, slow clear speed, one idea per turn.',B1:'CEFR B1 — common business vocabulary, natural but clear speed, simple follow-up questions.',B2:'CEFR B2 — natural native speed, phrasal verbs and idioms, ask follow-up "why/how" questions, expect 2–3 sentence answers.',C1:'CEFR C1 — fast natural speech, advanced vocabulary, nuance and register; challenge the learner to justify opinions and paraphrase; correct subtle errors.',
+    N5:'JLPT N5 — very simple words, short polite sentences, very slow.',N4:'JLPT N4 — simple vocabulary, short sentences, polite です/ます, speak slowly and clearly.',N3:'JLPT N3 — everyday workplace Japanese at natural speed, basic 敬語, follow-up questions.',N2:'JLPT N2 — business Japanese at native speed, 敬語 and abstract vocabulary, expect 2–3 sentence answers, correct subtle particle/word-choice errors.',N1:'JLPT N1 — fast natural speech, formal/written expressions, nuance; ask the learner to justify and paraphrase.'};
+  return m[lv]||lv;
+}
+function recentWeakPoints(){var out=[];voiceSessions().map(voiceSessionSummary).filter(function(s){return s.score&&s.score.fix&&s.score.fix.length;}).slice(0,3).forEach(function(s){s.score.fix.forEach(function(f){if(out.indexOf(f)===-1)out.push(f);});});return out.slice(0,6);}
 function feedbackPrompt(){
   var tl=targetLang();
   return 'The session is ending now. In '+tl+', in at most 4 short sentences: say one thing the learner did well, give two specific corrections (words or grammar) from this conversation, then say goodbye. Then stop.';
@@ -1454,6 +1530,7 @@ async function fetchVoiceToken(instructions){
 }
 async function startVoice(mode){
   if(voice)return;
+  if(setNeed()>0&&!setSessions().some(function(a){return (a[0].at||'').slice(0,10)===todayISO();}))await generateQuestions(course,learnerLevel(),Math.max(setNeed(),setSize()));
   var qs=currentSet();if(!qs.length){showToast(T('nocat'));return;}
   if(!navigator.mediaDevices||!window.RTCPeerConnection){showToast(T('micerr'));return;}
   voice={mode:mode,session:'V'+Date.now().toString(36),started:Date.now(),status:'connecting',lines:[],partial:'',pc:null,dc:null,stream:null,audio:null,words:qs,ending:false,error:'',timer:null,userTalking:false};
@@ -1543,7 +1620,7 @@ function renderVoice(){
   if(voice)return h+renderVoiceLive();
   var qs=currentSet();
   h+='<p>'+T('voicedesc')+'</p>';
-  h+='<div class="card"><h3 style="margin-top:0">'+T('todaywords')+' · '+T('day')+' '+(dayIndex()+1)+' · #'+setRangeLabel()+'</h3>';
+  h+='<div class="card"><h3 style="margin-top:0">'+T('todaywords')+' · '+T('day')+' '+(dayIndex()+1)+' · '+levelBadge()+'</h3>';
   if(!qs.length)h+='<p class="hint">'+T('noq')+'</p>';
   else h+='<div class="vwords">'+qs.map(function(q){var ans=String(q.ans||'A').toLowerCase();return '<span>'+escapeHtml(wordOf(q))+'</span>';}).join('')+'</div>';
   h+='</div>';
@@ -1644,7 +1721,7 @@ function learnersCard(){
   var ls=allLearners();if(ls.length<2)return '';
   var h='<h3>'+T('learners')+'</h3><div class="tablewrap"><table><tr><th>'+T('learner')+'</th><th>'+T('course')+'</th><th class="c">'+T('days')+'</th><th class="c">'+T('answers')+'</th><th class="c">'+T('acc')+'</th><th class="c">'+T('mastered')+'</th><th class="c">'+T('voice')+'</th><th class="c">'+T('score')+'</th></tr>';
   ls.forEach(function(l){var c=mainCourseOf(l.email);withCourse(c,function(){var mine=myLogs(l.email);var st=stats(mine);var days={};mine.forEach(function(x){days[(x.at||'').slice(0,10)]=1;});var vs=voiceSessions(l.email).map(voiceSessionSummary);var last=vs.filter(function(s){return s.score;})[0];
-    h+='<tr'+(l.email===(currentUser.email||'').toLowerCase()?' style="font-weight:700"':'')+'><td><a onclick="viewEmail=\''+escapeAttr(l.email)+'\';render()" style="cursor:pointer">'+escapeHtml(l.name)+'</a></td><td>'+COURSES[c].label+'</td><td class="c">'+Object.keys(days).length+'</td><td class="c">'+st.n+'</td><td class="c">'+(st.n?st.acc+'%':'–')+'</td><td class="c">'+masteredCount(l.email)+'</td><td class="c">'+vs.length+'</td><td class="c">'+(last?last.score.score:'–')+'</td></tr>';});});
+    h+='<tr'+(l.email===(currentUser.email||'').toLowerCase()?' style="font-weight:700"':'')+'><td><a onclick="viewEmail=\''+escapeAttr(l.email)+'\';render()" style="cursor:pointer">'+escapeHtml(l.name)+'</a></td><td>'+COURSES[c].label+' '+learnerLevel(l.email,c)+'</td><td class="c">'+Object.keys(days).length+'</td><td class="c">'+st.n+'</td><td class="c">'+(st.n?st.acc+'%':'–')+'</td><td class="c">'+masteredCount(l.email)+'</td><td class="c">'+vs.length+'</td><td class="c">'+(last?last.score.score:'–')+'</td></tr>';});});
   return h+'</table></div>';
 }
 // ==================== Settings (設定 sheet) ====================
@@ -1717,6 +1794,10 @@ function renderAdmin(){
   h+='<div class="cfgrow"><b>学習者の追加</b>スプレッドシート（上のリンク）を学習者のGoogleアカウントに「編集者」で共有してください。本人のログインで回答ログが書き込まれます。</div>';
   h+='<div class="cfgrow"><button class="btn ghost small" onclick="reload()">再読み込み</button></div></div>';
   h+=renderStudySettings();
+  h+='<div class="card"><h3 style="margin-top:0">問題の生成(レベル別)</h3><p class="hint">学習者のレベルで問題が足りないときは「今日のセット」開始時に自動生成されます。ここでは手動で足せます(gpt-5.4-mini・20問あたり数円)。</p>';
+  h+='<div class="cfgrow"><b>在庫</b>'+Object.keys(COURSES).map(function(c){return COURSES[c].label+': '+LEVELS[c].map(function(l){return l+' '+questions.filter(function(q){return q.course===c&&q.level===l;}).length;}).join(' / ');}).join('<br>')+'</div>';
+  h+='<div class="cfgrow"><select id="gen-course" onchange="var l=document.getElementById(\'gen-level\');l.innerHTML=LEVELS[this.value].map(function(x){return \'<option>\'+x+\'</option>\';}).join(\'\')">'+Object.keys(COURSES).map(function(c){return '<option value="'+c+'">'+COURSES[c].label+'</option>';}).join('')+'</select> <select id="gen-level">'+LEVELS.jp.map(function(x){return '<option>'+x+'</option>';}).join('')+'</select> <input id="gen-n" type="number" value="20" min="1" max="40" style="width:70px"> 問 <button class="btn small" onclick="adminGenerate()">生成して追加</button></div>';
+  h+='<div class="cfgrow"><b>学習者のレベル</b>'+allLearners().map(function(l){return escapeHtml(l.name)+': '+Object.keys(COURSES).filter(function(c){return l.courses[c];}).map(function(c){return c+' '+learnerLevel(l.email,c);}).join(', ');}).join(' ／ ')+'<br><span class="hint">「設定」シートの level:メール:コース 行。履歴は levelhist:…</span></div></div>';
   h+='<div class="note" style="margin-top:14px"><b>コース列</b> jp=日本語N4(UI英語) / en=英語(UI日本語)。空欄はjp扱い。<br><b>分野ID</b> '+Object.keys(COURSES).map(function(c){return c+': '+COURSES[c].cats.map(function(x){return x.id+'='+x.label;}).join(', ');}).join(' ／ ')+'<br>正解列はA〜Dの文字。画面では選択肢の順番をシャッフルします。</div>';
   return h;
 }
