@@ -270,7 +270,7 @@ footer{max-width:1140px;margin:0 auto;padding:18px 22px;color:var(--muted);font-
   <main id="main"></main>
 </div>
 
-<footer>Choreia Learn ─ Japanese N4 / English. Answers are saved to your organization's spreadsheet. M2Labo</footer>
+<footer>Choreia Learn ─ Japanese N5–N1 / English. Answers are saved to your organization's spreadsheet. M2Labo · Japanese vocabulary, kanji and grammar data: <a href="https://github.com/KartikDhar09/hanasu" target="_blank" rel="noopener">Hanasu</a> by Kartik Dhar</footer>
 
 <div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal"></div></div>
 <div class="toast" id="toast"></div>
@@ -1313,6 +1313,24 @@ async function generateQuestions(c,lv,n,silent){
   }catch(e){console.error('generate',e);showToast(T('genfail')+' '+e.message);return 0;}
   finally{generating=false;}
 }
+// ==================== Import Hanasu (Kartik Dhar) question bank ====================
+var HANASU_JSON='hanasu_jp.json'; // tools/import_hanasu.py が生成(同一オリジン)
+async function importHanasu(){
+  if(generating)return;generating=true;var btn=document.getElementById('hanasu-btn');if(btn)btn.disabled=true;
+  try{
+    var r=await fetch(HANASU_JSON+'?v='+Date.now());if(!r.ok)throw new Error('hanasu_jp.json '+r.status);var d=await r.json();
+    var have={};questions.forEach(function(q){if(q.course==='jp')have[q.q]=1;});
+    var rows=(d.rows||[]).filter(function(x){return !have[x[1]];});
+    if(!rows.length){showToast('追加する問題はありません(すべて取込済み)');return;}
+    if(!confirm('Hanasu の問題 '+rows.length+' 問(日本語コース・レベル別)を「問題」シートに追加します。よろしいですか？'))return;
+    var mx=0;questions.forEach(function(q){var m=String(q.id||'').match(/^JP-(\d+)$/);if(m)mx=Math.max(mx,parseInt(m[1],10));});
+    var values=rows.map(function(x,i){return ['JP-'+pad(mx+1+i).padStart(4,'0'),x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],'yes','jp',x[8]];});
+    for(var i=0;i<values.length;i+=500){showToast('追加中… '+Math.min(i+500,values.length)+' / '+values.length);
+      await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+getSheetId()+'/values/'+encodeURIComponent('問題!A:ZZ')+':append?valueInputOption=RAW&insertDataOption=INSERT_ROWS',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:values.slice(i,i+500)})});}
+    await loadAllDataSafe();showToast(values.length+'問を追加しました');render();
+  }catch(e){console.error(e);showToast('取込に失敗: '+e.message);}
+  finally{generating=false;if(btn)btn.disabled=false;}
+}
 async function adminGenerate(){var c=document.getElementById('gen-course').value;var lv=document.getElementById('gen-level').value;var n=parseInt(document.getElementById('gen-n').value,10)||20;await generateQuestions(c,lv,n);render();}
 // ==================== Fixed set (same N questions, 3 times a day) ====================
 var SLOTS=[9,13,17]; // 設定シート slots で上書き(loadAllData)
@@ -1834,6 +1852,7 @@ function renderAdmin(){
   h+='<div class="card"><h3 style="margin-top:0">問題の生成(レベル別)</h3><p class="hint">学習者のレベルで問題が足りないときは「今日のセット」開始時に自動生成されます。ここでは手動で足せます(gpt-5.4-mini・20問あたり数円)。</p>';
   h+='<div class="cfgrow"><b>在庫</b>'+Object.keys(COURSES).map(function(c){return COURSES[c].label+': '+LEVELS[c].map(function(l){return l+' '+questions.filter(function(q){return q.course===c&&q.level===l;}).length;}).join(' / ');}).join('<br>')+'</div>';
   h+='<div class="cfgrow"><select id="gen-course" onchange="var l=document.getElementById(\'gen-level\');l.innerHTML=LEVELS[this.value].map(function(x){return \'<option>\'+x+\'</option>\';}).join(\'\')">'+Object.keys(COURSES).map(function(c){return '<option value="'+c+'">'+COURSES[c].label+'</option>';}).join('')+'</select> <select id="gen-level">'+LEVELS.jp.map(function(x){return '<option>'+x+'</option>';}).join('')+'</select> <input id="gen-n" type="number" value="20" min="1" max="40" style="width:70px"> 問 <button class="btn small" onclick="adminGenerate()">生成して追加</button></div>';
+  h+='<div class="cfgrow"><b>Hanasuの問題</b>Kartik Dharさん作 <a href="https://github.com/KartikDhar09/hanasu" target="_blank" rel="noopener">Hanasu</a> の語彙1,818語・漢字270・文法187(N5/N4)を4択に変換したもの(tools/import_hanasu.py)。未取込分だけ追加します。 <button id="hanasu-btn" class="btn small" onclick="importHanasu()">Hanasuの問題を取り込む</button></div>';
   h+='<div class="cfgrow"><b>学習者のレベル</b>'+allLearners().map(function(l){return escapeHtml(l.name)+': '+Object.keys(COURSES).filter(function(c){return l.courses[c];}).map(function(c){return c+' '+learnerLevel(l.email,c);}).join(', ');}).join(' ／ ')+'<br><span class="hint">「設定」シートの level:メール:コース 行。履歴は levelhist:…</span></div></div>';
   h+='<div class="note" style="margin-top:14px"><b>コース列</b> jp=日本語N4(UI英語) / en=英語(UI日本語)。空欄はjp扱い。<br><b>分野ID</b> '+Object.keys(COURSES).map(function(c){return c+': '+COURSES[c].cats.map(function(x){return x.id+'='+x.label;}).join(', ');}).join(' ／ ')+'<br>正解列はA〜Dの文字。画面では選択肢の順番をシャッフルします。</div>';
   return h;

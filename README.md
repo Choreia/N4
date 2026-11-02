@@ -29,3 +29,8 @@ MIT
 - スピーキング: 単語を使わせる短い質問の会話／リスニング: 単語ごとに1文読み上げ→質問→正誤。
 - 双方の発話はテキストで「会話ログ」シートに保存(初回に自動作成)。終了ボタンで講評→切断。1セッション10分上限。
 - 鍵: ブラウザはOpenAIの鍵を持たない。`worker/`(Cloudflare Worker)がGoogleトークンを検証して短命トークンを発行する。`worker/README.md`参照。
+
+## Hanasu の問題取り込み
+Kartik Dhar さん作 [Hanasu](https://github.com/KartikDhar09/hanasu) の語彙・漢字・文法データ(N5/N4)を4択に変換した `hanasu_jp.json`(約2,300問)を同梱。
+管理タブ「Hanasuの問題を取り込む」で未取込分だけ「問題」シートに追加される(コース=jp・レベル=N5/N4)。
+再生成: `python3 tools/import_hanasu.py <hanasuリポジトリ>`。Book(教科書)関連は著作物のため対象外。利用は Kartik さんの許可(2026-11-02 メール)に基づく。
