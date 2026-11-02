@@ -50,6 +50,8 @@ export default {
     const instructions = String(body.instructions || '').slice(0, 6000);
     const voice = ['marin', 'cedar', 'alloy', 'ash', 'ballad', 'coral', 'echo', 'sage', 'shimmer', 'verse'].includes(body.voice) ? body.voice : 'marin';
     const language = /^[a-z]{2}$/.test(String(body.language || '')) ? body.language : undefined;
+    const speedRaw = parseFloat(body.speed);
+    const speed = speedRaw >= 0.5 && speedRaw <= 1.5 ? Math.round(speedRaw * 100) / 100 : undefined; // Realtime output.speed: 0.25–1.5, 1 = default
     const ttl = Math.min(Math.max(parseInt(env.TOKEN_TTL_SECONDS || '300', 10) || 300, 10), 7200);
 
     const session = {
@@ -62,22 +64,29 @@ export default {
           transcription: Object.assign({ model: 'gpt-4o-mini-transcribe' }, language ? { language } : {}),
           turn_detection: { type: 'semantic_vad', eagerness: 'medium', create_response: true, interrupt_response: true },
         },
-        output: { voice },
+        output: Object.assign({ voice }, speed ? { speed } : {}),
       },
     };
 
     // 3. Mint the ephemeral client secret
     const safetyId = await sha256Hex(email);
-    const r = await fetch('https://api.openai.com/v1/realtime/client_secrets', {
+    const mint = (sess) => fetch('https://api.openai.com/v1/realtime/client_secrets', {
       method: 'POST',
       headers: {
         Authorization: 'Bearer ' + env.OPENAI_API_KEY,
         'Content-Type': 'application/json',
         'OpenAI-Safety-Identifier': safetyId,
       },
-      body: JSON.stringify({ expires_after: { anchor: 'created_at', seconds: ttl }, session }),
+      body: JSON.stringify({ expires_after: { anchor: 'created_at', seconds: ttl }, session: sess }),
     });
-    const data = await r.json().catch(() => ({}));
+    let r = await mint(session);
+    let data = await r.json().catch(() => ({}));
+    if (!r.ok && speed && /speed/i.test(String(data.error && data.error.message || ''))) {
+      // API rejected the speed field: retry at default speed rather than failing the session
+      delete session.audio.output.speed;
+      r = await mint(session);
+      data = await r.json().catch(() => ({}));
+    }
     if (!r.ok) return json(r.status, { error: 'openai: ' + (data.error && data.error.message || r.statusText) });
     const value = data.value || (data.client_secret && data.client_secret.value);
     if (!value) return json(502, { error: 'no client secret in response' });
