@@ -211,6 +211,25 @@ footer{max-width:1140px;margin:0 auto;padding:18px 22px;color:var(--muted);font-
 .res-big{font-size:2.4rem;font-weight:900;font-family:"Zen Kaku Gothic New",sans-serif;color:var(--accent-deep)}
 .bar2{height:8px;background:var(--panel2);border-radius:4px;overflow:hidden;min-width:80px}
 .bar2 i{display:block;height:100%;background:var(--ok)}
+.vmodes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:12px 0}
+.vmode{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.vmode h3{margin:0;font-size:1rem}
+.vmode p{margin:0;font-size:.85rem;color:var(--sub);flex:1}
+.vwords{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.vwords span{background:var(--panel);border:1px solid var(--line2);border-radius:999px;padding:2px 10px;font-size:.78rem}
+.vlive{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.vstatus{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.vdot{width:12px;height:12px;border-radius:50%;background:var(--muted)}
+.vdot.live{background:var(--ok);box-shadow:0 0 0 4px var(--ok-soft);animation:vpulse 1.2s ease-in-out infinite}
+.vdot.user{background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.vdot.err{background:var(--bad)}
+@keyframes vpulse{0%,100%{opacity:1}50%{opacity:.45}}
+.vlines{display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow-y:auto;padding:4px 2px}
+.vline{display:flex;gap:10px;align-items:flex-start;font-size:.95rem;line-height:1.5}
+.vline .who{flex:0 0 auto;font-size:.72rem;font-weight:800;border-radius:999px;padding:2px 9px;margin-top:3px}
+.vline.tutor .who{background:var(--info-soft);color:var(--info)}
+.vline.user .who{background:var(--accent-soft);color:var(--accent-deep)}
+.vline.partial{opacity:.6}
 </style>
 </head>
 <body>
@@ -266,6 +285,11 @@ var TOKEN_KEY='choreia_n4_token';
 var CONFIG_CACHE_KEY='choreia_n4_config_cache';
 var COURSE_KEY='choreia_n4_course';
 var BLOCKED_DOMAINS=['gmail.com','googlemail.com','yahoo.co.jp','yahoo.com','hotmail.com','outlook.com','outlook.jp','icloud.com','me.com','mac.com','aol.com','protonmail.com','zoho.com','live.com','live.jp','msn.com','nifty.com','biglobe.ne.jp','ocn.ne.jp'];
+// ---- Voice (OpenAI Realtime via Worker-minted ephemeral key) ----
+var VOICE_TOKEN_URL='https://choreia-learn-voice.r-yasukouchi.workers.dev/token';
+var VOICE_MAX_SEC=600; // 1セッション上限(秒)
+var VOICE_FIELDS=['at','email','name','session','mode','course','role','text','sec'];
+var VOICE_SHEET={title:'会話ログ',fields:VOICE_FIELDS,headers:['日時','メール','氏名','セッション','モード(speaking/listening)','コース','役割(user/tutor)','発話','経過秒']};
 
 var Q_FIELDS=['id','cat','q','a','b','c','d','ans','exp','active','course'];
 var LOG_FIELDS=['at','email','name','session','qid','cat','q','choice','correct','sec','course'];
@@ -286,6 +310,8 @@ var UI={
   en:{study:'Study',progress:'Progress',pick:'Pick a category and the number of questions. Each answer and its time are saved.',all:'All categories',allsub:'ぜんぶ',questions:'questions',nq:'Questions:',start:'Start ▶',today:'Today',total:'Total',answers:'answers',noq:'No questions yet. Ask the admin to fill the 問題 sheet.',next:'Next ▶',results:'See results',quit:'Quit',correct:'Correct!',wrong:'Not quite.',pct:'correct',totaltime:'total',perq:'per question',q:'Question',your:'Your answer',result:'Result',time:'Time',again:'Study again',unsaved:'answers not yet saved.',retry:'Retry',learner:'Learner',none:'No answers yet.',acc:'accuracy',avg:'avg time / question',days:'days studied',bycat:'By category',category:'Category',sessions:'Recent sessions',date:'Date',score:'Score',review:'Needs review',mixed:'Mixed',course:'Course',nocat:'No questions in this category',set:'Daily set',setdesc:'20 new questions every day, repeated three times (9:00 / 13:00 / 17:00). Tomorrow moves on to the next 20.',day:'Day',startset:'Start the set ▶',mastered:'Mastered',lastrun:'Last run',prevrun:'Previous run',thisrun:'this run',free:'Free practice',sethist:'Daily set history',slot:'Slot'},
   ja:{study:'学習',progress:'進捗',pick:'分野と問題数を選んでください。回答と回答時間は1問ごとに記録されます。',all:'全分野',allsub:'All',questions:'問',nq:'問題数:',start:'開始 ▶',today:'今日',total:'累計',answers:'問',noq:'問題がまだありません。管理者が「問題」シートに追加してください。',next:'次へ ▶',results:'結果を見る',quit:'中断',correct:'正解！',wrong:'不正解',pct:'正答率',totaltime:'合計',perq:'1問あたり',q:'問題',your:'あなたの回答',result:'正誤',time:'時間',again:'もう一度',unsaved:'件の回答が未保存です。',retry:'再試行',learner:'学習者',none:'まだ回答がありません。',acc:'正答率',avg:'平均回答時間',days:'学習日数',bycat:'分野別',category:'分野',sessions:'最近のセッション',date:'日時',score:'得点',review:'要復習',mixed:'複数',course:'コース',nocat:'この分野の問題がありません',set:'今日のセット',setdesc:'1日20問を覚えます。同じ20問を9時・13時・17時の3回繰り返し、翌日は次の20問に進みます。',day:'Day',startset:'セットを始める ▶',mastered:'習得済み',lastrun:'前回',prevrun:'前回',thisrun:'今回',free:'自由練習',sethist:'セットの履歴',slot:'回'}
 };
+Object.assign(UI.en,{voice:'Voice',speaking:'Speaking',listening:'Listening',voicedesc:"Practice with an AI tutor using today's set. Speaking: a conversation where you try to use each word. Listening: the tutor reads a short sentence and asks a question about it. Everything you both say is saved as text, so your progress can be reviewed.",startvoice:'Start ▶',endvoice:'End session',connecting:'Connecting…',live:'Live — speak when the tutor pauses',ending:'Getting feedback…',ended:'Session ended',micerr:'Microphone not available',tutor:'Tutor',you:'You',todaywords:"Today's words",voicehist:'Voice sessions',turns:'your turns',minutes:'min',mode:'Mode',notconfigured:'Voice is not set up yet on the server. Ask the admin.',limit:'A session ends automatically after 10 minutes. Use earphones to avoid echo.',speakdesc:'Conversation. The tutor asks short questions so that you use today\'s words.',listendesc:'The tutor reads one sentence per word, then asks a question. Answer by voice.',transcript:'Transcript',lastsession:'Last session'});
+Object.assign(UI.ja,{voice:'音声',speaking:'スピーキング',listening:'リスニング',voicedesc:'今日のセットの単語でAI講師と練習します。スピーキング=単語を使う会話、リスニング=講師が短い文を読み上げて質問します。双方の発話は文字で保存され、あとから振り返れます。',startvoice:'開始 ▶',endvoice:'終了する',connecting:'接続中…',live:'会話中 — 講師が止まったら話してください',ending:'講評を待っています…',ended:'終了しました',micerr:'マイクを使えません',tutor:'講師',you:'あなた',todaywords:'今日の単語',voicehist:'音声セッション',turns:'あなたの発話',minutes:'分',mode:'モード',notconfigured:'音声機能はまだサーバー側の設定が済んでいません。管理者に連絡してください。',limit:'1セッションは10分で自動終了します。エコー防止のためイヤホン推奨。',speakdesc:'会話。講師が短い質問をして、今日の単語を使う場面を作ります。',listendesc:'講師が単語ごとに1文を読み上げて質問します。声で答えてください。',transcript:'会話の記録',lastsession:'前回'});
 function T(k){return (UI[COURSES[course].ui]||UI.en)[k]||k;}
 function catLabel(id){var cs=COURSES[course].cats;for(var i=0;i<cs.length;i++)if(cs[i].id===id)return cs[i].label;return id;}
 
@@ -1141,12 +1167,12 @@ function updateSetupBtn(){var b=document.getElementById('setup-confirm-btn');b.d
 async function confirmSetup(){
   var b=document.getElementById('setup-confirm-btn');b.disabled=true;b.textContent='設定中…';
   try{
-    var ssBody={properties:{title:'Choreia Learn - '+currentUser.domain},sheets:SHEET_DEFS.map(function(s){return {properties:{title:s.title,gridProperties:{frozenRowCount:1}}};})};
+    var ssBody={properties:{title:'Choreia Learn - '+currentUser.domain},sheets:SHEET_DEFS.concat([VOICE_SHEET]).map(function(s){return {properties:{title:s.title,gridProperties:{frozenRowCount:1}}};})};
     var ss=await apiFetch('https://sheets.googleapis.com/v4/spreadsheets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ssBody)});
     var ssId=ss.spreadsheetId;
     var fileInfo=await apiFetch('https://www.googleapis.com/drive/v3/files/'+ssId+'?fields=parents&supportsAllDrives=true');
     await authFetch('https://www.googleapis.com/drive/v3/files/'+ssId+'?addParents='+setupFolderId+'&removeParents='+(fileInfo.parents||[]).join(',')+'&supportsAllDrives=true',{method:'PATCH',headers:{'Content-Type':'application/json'},body:'{}'});
-    var headerData=SHEET_DEFS.map(function(s){return {range:s.title+'!A1',values:[s.headers]};});
+    var headerData=SHEET_DEFS.concat([VOICE_SHEET]).map(function(s){return {range:s.title+'!A1',values:[s.headers]};});
     var seedRows=seedRowsFor(['jp','en'],0);
     headerData.push({range:'問題!A2',values:seedRows});
     await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+ssId+'/values:batchUpdate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({valueInputOption:'RAW',data:headerData})});
@@ -1196,6 +1222,7 @@ async function loadAllData(){
   logs=parseRows(vr[1]&&vr[1].values,LOG_FIELDS);logs.forEach(function(l){l.course=(l.course||'jp').toLowerCase();});
   ensureCourseColumns();
   sheetSettings={};parseRows(vr[2]&&vr[2].values,SETTING_FIELDS).forEach(function(r){sheetSettings[r.key]=r.value;});
+  await loadVoiceLogs();
   dataLoadError=null;
 }
 async function loadAllDataSafe(){try{await loadAllData();}catch(e){dataLoadError=e;console.error('loadAllData',e);showToast(/403/.test(String(e&&e.message))?'Cannot read the spreadsheet (no permission on the shared drive)':'Failed to load data');}}
@@ -1212,12 +1239,13 @@ function isAdmin(){if(!orgConfig)return false;return (orgConfig.admins||[orgConf
 function showMainView(){showView('main');document.getElementById('btn-admin').style.display=isAdmin()?'':'none';if(!viewEmail)viewEmail=currentUser.email;render();}
 function setTab(t){tab=t;render();}
 function render(){
-  var tabs=[{id:'study',l:T('study')},{id:'progress',l:T('progress')}];
+  var tabs=[{id:'study',l:T('study')},{id:'voice',l:'🎙 '+T('voice')},{id:'progress',l:T('progress')}];
   if(isAdmin())tabs.push({id:'admin',l:'管理'});
   document.getElementById('tabs').innerHTML=tabs.map(function(t){return '<button class="'+(tab===t.id?'on':'')+'" onclick="setTab(\''+t.id+'\')">'+t.l+'</button>';}).join('');
   var m=document.getElementById('main');
   if(dataLoadError){m.innerHTML='<div class="emptybox">Could not load data.<br><button class="btn small" onclick="reload()">Retry</button></div>';return;}
   if(tab==='study')m.innerHTML=quiz?renderQuiz():renderStudyHome();
+  else if(tab==='voice')m.innerHTML=renderVoice();
   else if(tab==='progress')m.innerHTML=renderProgress();
   else m.innerHTML=renderAdmin();
 }
@@ -1323,6 +1351,211 @@ function renderResult(){
   return h;
 }
 
+// ==================== Voice (Speaking / Listening with an AI tutor) ====================
+var voice=null; // {mode,session,started,status,lines:[{role,text,sec}],partial,pc,dc,stream,audio,words,ending,error,timer}
+var voiceLogs=[],voiceSheetOk=false,pendingVoice=[];
+function voiceSec(){return voice?Math.round((Date.now()-voice.started)/100)/10:0;}
+function targetLang(){return course==='jp'?'Japanese':'English';}
+function helperLang(){return course==='jp'?'English':'Japanese';}
+function voiceMaterial(qs){
+  return qs.map(function(q){var ans=String(q.ans||'A').toUpperCase();var right=q[ans.toLowerCase()]||q.a;return '- '+q.q.replace(/\s+/g,' ').trim()+' → '+String(right).trim();}).join('\n');
+}
+function buildInstructions(mode,qs){
+  var tl=targetLang(),hl=helperLang();
+  var level=course==='jp'?'JLPT N4 (simple vocabulary, short sentences, polite です/ます form, speak slowly and clearly)':'CEFR A2–B1 (simple vocabulary, short sentences, natural but clear speed)';
+  var who=course==='jp'?'an English-speaking adult learner of Japanese who works at a Japanese company':'a Japanese adult learner of English who works at a Japanese company';
+  var s='You are a friendly, patient language tutor for '+who+'. Level: '+level+'.\n';
+  s+='Speak ONLY in '+tl+'. Use '+hl+' only for a one-phrase hint when the learner is clearly stuck, then return to '+tl+'.\n';
+  s+='Keep every turn short: at most 2 sentences, then stop and wait for the learner. Never lecture. This is audio only; never spell things out or mention text.\n';
+  s+='Today\'s study items (question → answer). Each item contains one target word or pattern; use the target words, not the quiz wording:\n'+voiceMaterial(qs)+'\n\n';
+  if(mode==='speaking'){
+    s+='MODE: Speaking practice. Have a natural conversation about daily life and work. Ask one short question at a time, designed so the learner can answer with one of today\'s words. Go through as many of the words as possible. ';
+    s+='When the learner makes a mistake, repeat the corrected phrase once in a natural way and keep going. Praise briefly when they use a target word correctly. ';
+    s+='Begin now: greet in one sentence and ask the first question.';
+  }else{
+    s+='MODE: Listening practice. For each target word in order: (1) say one short, natural sentence (1–2 sentences) that uses the word; (2) ask one simple comprehension question about that sentence; (3) wait for the learner\'s spoken answer; (4) say whether it is correct in a few words — if wrong, say the correct answer and repeat the sentence once slowly; (5) move to the next word. ';
+    s+='Do not explain grammar. If the learner says "again" or "もう一度", repeat the sentence. ';
+    s+='Begin now: greet in one sentence, then say the first sentence.';
+  }
+  return s;
+}
+function feedbackPrompt(){
+  var tl=targetLang();
+  return 'The session is ending now. In '+tl+', in at most 4 short sentences: say one thing the learner did well, give two specific corrections (words or grammar) from this conversation, then say goodbye. Then stop.';
+}
+async function ensureVoiceSheet(){
+  if(voiceSheetOk)return;
+  var id=getSheetId();
+  var meta=await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+id+'?fields=sheets.properties.title');
+  var has=(meta.sheets||[]).some(function(s){return s.properties&&s.properties.title===VOICE_SHEET.title;});
+  if(!has){
+    await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+id+':batchUpdate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requests:[{addSheet:{properties:{title:VOICE_SHEET.title,gridProperties:{frozenRowCount:1}}}}]})});
+    await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+id+'/values/'+encodeURIComponent(VOICE_SHEET.title+'!A1')+'?valueInputOption=RAW',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:[VOICE_SHEET.headers]})});
+  }
+  voiceSheetOk=true;
+}
+async function loadVoiceLogs(){
+  try{var v=await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+getSheetId()+'/values/'+encodeURIComponent(VOICE_SHEET.title+'!A2:'+colLetter(VOICE_FIELDS.length)+'20000'));voiceLogs=parseRows(v.values,VOICE_FIELDS);voiceLogs.forEach(function(l){l.course=(l.course||'jp').toLowerCase();});voiceSheetOk=true;}
+  catch(e){voiceLogs=[];voiceSheetOk=false;}
+}
+async function flushVoice(){
+  while(pendingVoice.length){var l=pendingVoice[0];try{await appendRow(VOICE_SHEET.title,l,VOICE_FIELDS);pendingVoice.shift();}catch(e){console.error('voicelog',e);return false;}}
+  return true;
+}
+var _voiceFlushing=false;
+function queueVoiceLog(role,text){
+  if(!voice||!text)return;
+  var l={at:nowISO(),email:currentUser.email,name:currentUser.name,session:voice.session,mode:voice.mode,course:course,role:role,text:text,sec:String(voiceSec())};
+  voiceLogs.push(l);pendingVoice.push(l);
+  if(!_voiceFlushing){_voiceFlushing=true;flushVoice().then(function(){_voiceFlushing=false;});}
+}
+async function fetchVoiceToken(instructions){
+  var r=await fetch(VOICE_TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+accessToken},body:JSON.stringify({instructions:instructions,voice:'marin',language:course==='jp'?'ja':'en'})});
+  var d={};try{d=await r.json();}catch(e){}
+  if(r.status===503)throw new Error(T('notconfigured'));
+  if(r.status===401){ // Google token expired → refresh once
+    await refreshAccessToken();
+    r=await fetch(VOICE_TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+accessToken},body:JSON.stringify({instructions:instructions,voice:'marin',language:course==='jp'?'ja':'en'})});
+    try{d=await r.json();}catch(e){}
+  }
+  if(!r.ok)throw new Error(d.error||('token '+r.status));
+  return d;
+}
+async function startVoice(mode){
+  if(voice)return;
+  var qs=currentSet();if(!qs.length){showToast(T('nocat'));return;}
+  if(!navigator.mediaDevices||!window.RTCPeerConnection){showToast(T('micerr'));return;}
+  voice={mode:mode,session:'V'+Date.now().toString(36),started:Date.now(),status:'connecting',lines:[],partial:'',pc:null,dc:null,stream:null,audio:null,words:qs,ending:false,error:'',timer:null,userTalking:false};
+  render();
+  try{
+    var ms=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});voice.stream=ms;
+    await ensureVoiceSheet();
+    var tok=await fetchVoiceToken(buildInstructions(mode,qs));
+    var pc=new RTCPeerConnection();voice.pc=pc;
+    var audio=document.createElement('audio');audio.autoplay=true;voice.audio=audio;document.body.appendChild(audio);
+    pc.ontrack=function(e){audio.srcObject=e.streams[0];};
+    pc.addTrack(ms.getTracks()[0]);
+    var dc=pc.createDataChannel('oai-events');voice.dc=dc;
+    dc.onmessage=onVoiceEvent;
+    dc.onopen=function(){if(!voice)return;voice.status='live';voice.started=Date.now();dc.send(JSON.stringify({type:'response.create'}));voice.timer=setInterval(voiceTick,500);updateVoiceDom();};
+    pc.onconnectionstatechange=function(){if(!voice||voice.pc!==pc)return;if(['failed','closed'].indexOf(pc.connectionState)!==-1&&voice.status!=='ended'){voice.error=voice.error||('connection '+pc.connectionState);finishVoice();}};
+    var offer=await pc.createOffer();await pc.setLocalDescription(offer);
+    var r=await fetch('https://api.openai.com/v1/realtime/calls',{method:'POST',body:offer.sdp,headers:{Authorization:'Bearer '+tok.value,'Content-Type':'application/sdp'}});
+    if(!r.ok)throw new Error('OpenAI '+r.status+' '+(await r.text()).slice(0,200));
+    await pc.setRemoteDescription({type:'answer',sdp:await r.text()});
+  }catch(e){console.error('voice',e);voice.error=(e&&e.name==='NotAllowedError')?T('micerr'):(e.message||String(e));voice.status='ended';cleanupVoice();render();}
+}
+function onVoiceEvent(ev){
+  if(!voice)return;var e;try{e=JSON.parse(ev.data);}catch(x){return;}
+  switch(e.type){
+    case 'input_audio_buffer.speech_started':voice.userTalking=true;break;
+    case 'input_audio_buffer.speech_stopped':voice.userTalking=false;break;
+    case 'conversation.item.input_audio_transcription.completed':
+      if(e.transcript&&e.transcript.trim()){voice.lines.push({role:'user',text:e.transcript.trim(),sec:voiceSec()});queueVoiceLog('user',e.transcript.trim());}break;
+    case 'response.output_audio_transcript.delta':voice.partial+=e.delta||'';break;
+    case 'response.output_audio_transcript.done':
+      voice.partial='';if(e.transcript&&e.transcript.trim()){voice.lines.push({role:'tutor',text:e.transcript.trim(),sec:voiceSec()});queueVoiceLog('tutor',e.transcript.trim());}break;
+    case 'response.done':if(voice.ending)finishVoice();break;
+    case 'error':console.error('realtime error',e);voice.error=(e.error&&e.error.message)||'error';break;
+  }
+  updateVoiceDom();
+}
+function voiceTick(){
+  if(!voice)return;
+  if(voice.status==='live'&&voiceSec()>=VOICE_MAX_SEC){endVoice();return;}
+  var t=document.getElementById('voice-timer');if(t)t.textContent=fmtMin(voiceSec());
+}
+function fmtMin(s){s=Math.floor(s);return Math.floor(s/60)+':'+pad(s%60);}
+function endVoice(){
+  if(!voice||voice.ending)return;
+  if(voice.status!=='live'||!voice.dc||voice.dc.readyState!=='open'){finishVoice();return;}
+  voice.ending=true;voice.status='ending';updateVoiceDom();
+  try{
+    voice.dc.send(JSON.stringify({type:'session.update',session:{type:'realtime',audio:{input:{turn_detection:{type:'semantic_vad',create_response:false,interrupt_response:false}}}}}));
+    voice.dc.send(JSON.stringify({type:'conversation.item.create',item:{type:'message',role:'user',content:[{type:'input_text',text:feedbackPrompt()}]}}));
+    voice.dc.send(JSON.stringify({type:'response.create'}));
+  }catch(e){finishVoice();return;}
+  voice.endTimeout=setTimeout(function(){if(voice&&voice.status==='ending')finishVoice();},25000);
+}
+function cleanupVoice(){
+  if(!voice)return;
+  clearInterval(voice.timer);clearTimeout(voice.endTimeout);
+  try{if(voice.dc)voice.dc.close();}catch(e){}
+  try{if(voice.pc)voice.pc.close();}catch(e){}
+  try{if(voice.stream)voice.stream.getTracks().forEach(function(t){t.stop();});}catch(e){}
+  try{if(voice.audio){voice.audio.srcObject=null;voice.audio.remove();}}catch(e){}
+  voice.dc=null;voice.pc=null;voice.stream=null;voice.audio=null;
+}
+function finishVoice(){
+  if(!voice||voice.status==='ended')return;
+  var wasLive=voice.lines.length>0;
+  voice.status='ended';cleanupVoice();
+  if(wasLive)queueVoiceLog('end','duration '+fmtMin(voiceSec())+' / turns '+voice.lines.filter(function(l){return l.role==='user';}).length);
+  render();
+}
+function closeVoice(){if(voice&&voice.status!=='ended')return;voice=null;render();}
+function voiceSessions(email){
+  email=(email||currentUser.email).toLowerCase();var ss={};
+  voiceLogs.forEach(function(l){if((l.email||'').toLowerCase()!==email||l.course!==course)return;(ss[l.session]=ss[l.session]||[]).push(l);});
+  return Object.keys(ss).map(function(k){return ss[k];}).sort(function(a,b){return a[0].at<b[0].at?1:-1;});
+}
+function voiceSessionSummary(a){
+  var turns=a.filter(function(l){return l.role==='user';}).length;var secs=0;a.forEach(function(l){secs=Math.max(secs,parseFloat(l.sec)||0);});
+  return {at:a[0].at,mode:a[0].mode,turns:turns,sec:secs,tutor:a.filter(function(l){return l.role==='tutor';}).length};
+}
+function renderVoice(){
+  var h='<h2>'+T('voice')+'</h2>'+courseSwitch();
+  if(voice)return h+renderVoiceLive();
+  var qs=currentSet();
+  h+='<p>'+T('voicedesc')+'</p>';
+  h+='<div class="card"><h3 style="margin-top:0">'+T('todaywords')+' · '+T('day')+' '+(dayIndex()+1)+' · #'+setRangeLabel()+'</h3>';
+  if(!qs.length)h+='<p class="hint">'+T('noq')+'</p>';
+  else h+='<div class="vwords">'+qs.map(function(q){var ans=String(q.ans||'A').toLowerCase();return '<span>'+escapeHtml(wordOf(q))+'</span>';}).join('')+'</div>';
+  h+='</div>';
+  h+='<div class="vmodes">';
+  h+='<div class="vmode"><h3>🗣 '+T('speaking')+'</h3><p>'+T('speakdesc')+'</p><div><button class="btn" onclick="startVoice(\'speaking\')" '+(qs.length?'':'disabled')+'>'+T('startvoice')+'</button></div></div>';
+  h+='<div class="vmode"><h3>👂 '+T('listening')+'</h3><p>'+T('listendesc')+'</p><div><button class="btn" onclick="startVoice(\'listening\')" '+(qs.length?'':'disabled')+'>'+T('startvoice')+'</button></div></div>';
+  h+='</div><p class="hint">'+T('limit')+'</p>';
+  var ss=voiceSessions();
+  if(ss.length){h+='<h3>'+T('voicehist')+'</h3><div class="tablewrap"><table><tr><th>'+T('date')+'</th><th>'+T('mode')+'</th><th class="c">'+T('turns')+'</th><th class="c">'+T('time')+'</th></tr>';
+    ss.slice(0,10).forEach(function(a){var s=voiceSessionSummary(a);h+='<tr><td class="mono">'+escapeHtml((s.at||'').slice(0,16).replace('T',' '))+'</td><td>'+T(s.mode)+'</td><td class="c">'+s.turns+'</td><td class="c mono">'+fmtMin(s.sec)+'</td></tr>';});
+    h+='</table></div>';}
+  return h;
+}
+function wordOf(q){ // 表示用: 問題文から対象語を取り出す(「」/"" で囲まれていればその中、無ければ問題文)
+  var m=String(q.q||'').match(/[「"“]([^」"”]+)[」"”]/);if(m)return m[1];var s=String(q.q||'');return s.length>24?s.slice(0,24)+'…':s;
+}
+function renderVoiceLive(){
+  var h='<div class="vlive" id="voice-live">';
+  h+='<div class="vstatus"><span class="badge b-acc">'+T(voice.mode)+'</span><span id="voice-status-wrap"></span><span class="spacer"></span><span class="timer mono" id="voice-timer">'+fmtMin(voiceSec())+'</span> ';
+  h+='<button class="btn small" id="voice-end-btn" onclick="endVoice()">'+T('endvoice')+'</button></div>';
+  h+='<div class="vwords">'+voice.words.map(function(q){return '<span>'+escapeHtml(wordOf(q))+'</span>';}).join('')+'</div>';
+  h+='<div class="vlines" id="voice-lines"></div>';
+  h+='<div id="voice-foot" style="margin-top:12px"></div></div>';
+  setTimeout(updateVoiceDom,0);
+  return h;
+}
+function updateVoiceDom(){
+  if(!voice)return;
+  var st=document.getElementById('voice-status-wrap');
+  if(st){var cls='vdot',txt='';
+    if(voice.status==='connecting'){txt=T('connecting');}
+    else if(voice.status==='live'){cls+=voice.userTalking?' user':' live';txt=T('live');}
+    else if(voice.status==='ending'){cls+=' live';txt=T('ending');}
+    else {cls+=voice.error?' err':'';txt=T('ended')+(voice.error?' — '+escapeHtml(voice.error):'');}
+    st.innerHTML='<span class="'+cls+'"></span> <span style="font-size:.86rem">'+txt+'</span>';}
+  var box=document.getElementById('voice-lines');
+  if(box){var h='';voice.lines.forEach(function(l){h+='<div class="vline '+l.role+'"><span class="who">'+(l.role==='user'?T('you'):T('tutor'))+'</span><span>'+escapeHtml(l.text)+'</span></div>';});
+    if(voice.partial)h+='<div class="vline tutor partial"><span class="who">'+T('tutor')+'</span><span>'+escapeHtml(voice.partial)+'</span></div>';
+    if(!h&&voice.status==='connecting')h='<div class="spinner"></div>';
+    box.innerHTML=h;box.scrollTop=box.scrollHeight;}
+  var eb=document.getElementById('voice-end-btn');if(eb)eb.style.display=(voice.status==='live')?'':'none';
+  var ft=document.getElementById('voice-foot');
+  if(ft){if(voice.status==='ended'){var turns=voice.lines.filter(function(l){return l.role==='user';}).length;ft.innerHTML='<p class="hint">'+T('turns')+': '+turns+' · '+T('time')+': '+fmtMin(voiceSec())+(pendingVoice.length?' · '+pendingVoice.length+' '+T('unsaved')+' <a onclick="flushVoice().then(updateVoiceDom)" style="cursor:pointer">'+T('retry')+'</a>':'')+'</p><div class="acts"><button class="btn" onclick="closeVoice()">'+T('again')+'</button> <button class="btn ghost" onclick="voice=null;setTab(\'progress\')">'+T('progress')+'</button></div>';}
+    else ft.innerHTML='';}
+}
+window.addEventListener('pagehide',function(){if(voice)cleanupVoice();});
+
 // ==================== Progress ====================
 function stats(arr){var n=arr.length,c=0,s=0;arr.forEach(function(l){if(l.correct==='1')c++;s+=parseFloat(l.sec)||0;});return {n:n,c:c,acc:n?Math.round(100*c/n):0,avg:n?(s/n):0};}
 function renderProgress(){
@@ -1340,6 +1573,11 @@ function renderProgress(){
   if(ss.length){h+='<h3>'+T('sethist')+'</h3><div class="tablewrap"><table><tr><th>'+T('date')+'</th><th>'+T('slot')+'</th><th class="c">'+T('score')+'</th><th></th><th class="c">'+T('avg')+'</th></tr>';
     ss.slice(0,21).forEach(function(a){var s=stats(a);var si=slotOf(a[0].at);h+='<tr><td class="mono">'+escapeHtml((a[0].at||'').slice(0,16).replace('T',' '))+'</td><td>'+(si>=0?SLOTS[si]+(course==='en'?'時':':00'):'')+'</td><td class="c">'+s.c+' / '+s.n+'</td><td><div class="bar2"><i style="width:'+s.acc+'%"></i></div></td><td class="c mono">'+s.avg.toFixed(1)+'s</td></tr>';});
     h+='</table></div>';}
+  var vs=voiceSessions(who);
+  if(vs.length){var vsum=vs.map(voiceSessionSummary);var vt=0,vsec=0;vsum.forEach(function(s){vt+=s.turns;vsec+=s.sec;});
+    h+='<h3>'+T('voicehist')+'</h3><p class="hint">'+vs.length+' '+T('sessions').toLowerCase()+' · '+T('turns')+' '+vt+' · '+fmtMin(vsec)+'</p><div class="tablewrap"><table><tr><th>'+T('date')+'</th><th>'+T('mode')+'</th><th class="c">'+T('turns')+'</th><th class="c">'+T('time')+'</th></tr>';
+    vsum.slice(0,15).forEach(function(s){h+='<tr><td class="mono">'+escapeHtml((s.at||'').slice(0,16).replace('T',' '))+'</td><td>'+T(s.mode)+'</td><td class="c">'+s.turns+'</td><td class="c mono">'+fmtMin(s.sec)+'</td></tr>';});
+    h+='</table></div>';}
   var sk=Object.keys(sessions).sort(function(a,b){return sessions[b][0].at<sessions[a][0].at?-1:1;}).slice(0,15);
   h+='<h3>'+T('sessions')+'</h3><div class="tablewrap"><table><tr><th>'+T('date')+'</th><th>'+T('category')+'</th><th class="c">'+T('score')+'</th><th class="c">'+T('avg')+'</th></tr>';
   sk.forEach(function(k){var a=sessions[k];var s=stats(a);var cats={};a.forEach(function(l){cats[l.cat]=1;});var ck=Object.keys(cats);h+='<tr><td class="mono">'+escapeHtml((a[0].at||'').slice(0,16).replace('T',' '))+'</td><td>'+(ck.length>1?T('mixed'):catLabel(ck[0]))+'</td><td class="c">'+s.c+' / '+s.n+'</td><td class="c mono">'+s.avg.toFixed(1)+'s</td></tr>';});
@@ -1355,16 +1593,18 @@ function renderAdmin(){
   var h='<h2>管理</h2><div class="card"><div class="cfgrow"><b>スプレッドシート</b><a href="'+sheetUrl()+'" target="_blank" rel="noopener">開く ↗</a></div>';
   h+='<div class="cfgrow"><b>問題数</b>'+Object.keys(COURSES).map(function(c){return COURSES[c].label+' '+questions.filter(function(q){return q.course===c;}).length+'問';}).join(' / ')+'（「問題」シートに行を足すと増えます。有効列に no で非表示） <button class="btn ghost small" onclick="addMissingSeeds()">問題が無いコースに初期問題を追加</button></div>';
   h+='<div class="cfgrow"><b>回答ログ</b>'+logs.length+'件</div>';
+  h+='<div class="cfgrow"><b>会話ログ</b>'+voiceLogs.length+'件'+(voiceSheetOk?'':'（「会話ログ」シートは最初の音声セッション時に自動作成）')+' ／ 音声サーバー: <span id="voice-health" class="mono">'+VOICE_TOKEN_URL.replace(/\/token$/,'')+'</span> <button class="btn ghost small" onclick="checkVoiceHealth()">確認</button></div>';
   h+='<div class="cfgrow"><b>管理者</b>'+escapeHtml((orgConfig.admins||[orgConfig.admin]).join(', '))+' <button class="btn ghost small" onclick="addAdmin()">追加</button></div>';
   h+='<div class="cfgrow"><b>学習者の追加</b>スプレッドシート（上のリンク）を学習者のGoogleアカウントに「編集者」で共有してください。本人のログインで回答ログが書き込まれます。</div>';
   h+='<div class="cfgrow"><button class="btn ghost small" onclick="reload()">再読み込み</button></div></div>';
   h+='<div class="note" style="margin-top:14px"><b>コース列</b> jp=日本語N4(UI英語) / en=英語(UI日本語)。空欄はjp扱い。<br><b>分野ID</b> '+Object.keys(COURSES).map(function(c){return c+': '+COURSES[c].cats.map(function(x){return x.id+'='+x.label;}).join(', ');}).join(' ／ ')+'<br>正解列はA〜Dの文字。画面では選択肢の順番をシャッフルします。</div>';
   return h;
 }
+async function checkVoiceHealth(){var el=document.getElementById('voice-health');try{var r=await fetch(VOICE_TOKEN_URL.replace(/\/token$/,'/health'));var d=await r.json();el.textContent=d.configured?('OK ('+d.model+')'):'OPENAI_API_KEY 未設定 (npx wrangler secret put OPENAI_API_KEY)';}catch(e){el.textContent='接続できません: '+e.message;}}
 async function addAdmin(){var e=prompt('追加する管理者のメールアドレス');if(!e)return;e=e.trim().toLowerCase();if(!e)return;orgConfig.admins=orgConfig.admins||[orgConfig.admin];if(orgConfig.admins.indexOf(e)===-1)orgConfig.admins.push(e);if(await saveConfig()){showToast('追加しました');render();}}
 function openAdmin(){setTab('admin');}
 function nowISO(){var d=new Date();return isoOf(d)+'T'+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());}
-window.addEventListener('beforeunload',function(e){if(pendingLogs.length){e.preventDefault();e.returnValue='';}});
+window.addEventListener('beforeunload',function(e){if(pendingLogs.length||pendingVoice.length||(voice&&voice.status==='live')){e.preventDefault();e.returnValue='';}});
 </script>
 </body>
 </html>
