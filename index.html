@@ -1267,7 +1267,7 @@ function renderStudyHome(){
   h+='</div>';
   h+='<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span>'+T('nq')+'</span><div class="seg">'+[5,10,20].map(function(n){return '<button class="'+(studyCount===n?'on':'')+'" onclick="studyCount='+n+';render()">'+n+'</button>';}).join('')+'</div><span class="spacer"></span><button class="btn" onclick="startQuiz()">'+T('start')+'</button></div>';
   h+='<p class="hint" style="margin-top:14px">'+T('today')+': '+todayN+' '+T('answers')+' · '+T('total')+': '+mine.length+' '+T('answers')+'</p>';
-  if(!qs.length)h+='<div class="emptybox">'+T('noq')+'</div>';
+  if(!qs.length)h+='<div class="emptybox">'+T('noq')+(isAdmin()?'<br><button class="btn small" style="margin-top:10px" onclick="addMissingSeeds()">このコースの初期問題('+COURSES[course].seed().length+'問)をシートに追加</button>':'')+'</div>';
   return h;
 }
 function pickQuestions(cat,n){
