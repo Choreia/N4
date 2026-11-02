@@ -19,7 +19,7 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     const url = new URL(request.url);
     if (url.pathname === '/health') return json(200, { ok: true, configured: !!env.OPENAI_API_KEY, model: env.REALTIME_MODEL });
-    if (request.method !== 'POST' || (url.pathname !== '/token' && url.pathname !== '/generate')) return json(404, { error: 'not found' });
+    if (request.method !== 'POST' || !['/token', '/generate', '/tts'].includes(url.pathname)) return json(404, { error: 'not found' });
     if (origin && !allowedOrigins.includes(origin)) return json(403, { error: 'origin not allowed' });
     if (!env.OPENAI_API_KEY) return json(503, { error: 'OPENAI_API_KEY is not configured on the server' });
 
@@ -44,7 +44,8 @@ export default {
 
     let body = {};
     try { body = await request.json(); } catch (e) {}
-    if (url.pathname === '/generate') return generateQuestions(body, env, json);
+    if (url.pathname === '/generate') return body.kind === 'listening' ? generateListening(body, env, json) : generateQuestions(body, env, json);
+    if (url.pathname === '/tts') return tts(body, env, cors);
 
     // 2. Read the requested session shape (instructions/voice/language come from the page)
     const instructions = String(body.instructions || '').slice(0, 6000);
@@ -161,4 +162,63 @@ async function generateQuestions(body, env, json) {
     if (seen.has(k) || avoidSet.has(k)) return false; seen.add(k); return true;
   }).map(x => [x.cat, x.q, x.a, x.b, x.c || '', x.d || '', 'A', x.exp || '']);
   return json(200, { rows, level, course, model: env.GEN_MODEL || 'gpt-5.4-mini', usage: data.usage || null });
+}
+
+// ---- Listening items (audio 4-choice): one sentence + one comprehension question per target word ----
+async function generateListening(body, env, json) {
+  const course = body.course === 'jp' ? 'jp' : 'en';
+  const levels = Object.keys(LEVEL_GUIDE[course]);
+  const level = levels.includes(body.level) ? body.level : (course === 'jp' ? 'N4' : 'B1');
+  const items = (Array.isArray(body.items) ? body.items : []).slice(0, 40)
+    .map(x => ({ id: String(x.id || '').slice(0, 40), word: String(x.word || '').slice(0, 120), avoid: Array.isArray(x.avoid) ? x.avoid.map(String).slice(0, 5) : [] }))
+    .filter(x => x.id && x.word);
+  if (!items.length) return json(400, { error: 'items required' });
+  const lang = course === 'jp' ? 'Japanese' : 'English';
+  const dev = 'You write LISTENING comprehension items for a language-learning app. Output JSON only, matching the schema. ' +
+    'For each input item write: "sentence" = one short, natural spoken ' + lang + ' sentence (max 25 words / 50 characters for Japanese) that uses the target word in a realistic workplace or daily-life situation; ' +
+    '"q" = one simple comprehension question about the sentence, in ' + lang + ', answerable only by listening (who / what / when / where / how many / why); ' +
+    '"a" = the correct short answer; "b","c","d" = plausible wrong answers of the same kind (all four similar in length; never "all of the above"). ' +
+    'The sentence is heard, not read, so avoid homophones that make it ambiguous, and never put the question inside the sentence. ' +
+    (course === 'jp' ? 'Use kanji appropriate for the level with kana otherwise; options may be short Japanese phrases. ' : '') +
+    'Do not reuse any sentence listed under avoid. Level: ' + LEVEL_GUIDE[course][level];
+  const user = 'Items (id | target word | avoid sentences):\n' + items.map(x => x.id + ' | ' + x.word + (x.avoid.length ? ' | avoid: ' + x.avoid.join(' / ') : '')).join('\n');
+  const schema = { type: 'object', additionalProperties: false, required: ['items'], properties: { items: { type: 'array', items: { type: 'object', additionalProperties: false,
+    required: ['id', 'sentence', 'q', 'a', 'b', 'c', 'd'], properties: { id: { type: 'string' }, sentence: { type: 'string' }, q: { type: 'string' }, a: { type: 'string' }, b: { type: 'string' }, c: { type: 'string' }, d: { type: 'string' } } } } } };
+  const r = await fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { Authorization: 'Bearer ' + env.OPENAI_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: env.GEN_MODEL || 'gpt-5.4-mini', reasoning: { effort: 'low' }, input: [{ role: 'developer', content: dev }, { role: 'user', content: user }],
+      text: { format: { type: 'json_schema', name: 'listening_items', strict: true, schema } } }) });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) return json(r.status, { error: 'openai: ' + (data.error && data.error.message || r.statusText) });
+  let txt = data.output_text || '';
+  if (!txt) (data.output || []).forEach(o => (o.content || []).forEach(c => { if (c.type === 'output_text') txt += c.text; }));
+  let parsed; try { parsed = JSON.parse(txt); } catch (e) { return json(502, { error: 'bad JSON from model' }); }
+  const ids = new Set(items.map(x => x.id));
+  // row shape = 問題 sheet columns B..I plus ref: [cat, q, a, b, c, d, ans, exp(=spoken script), ref]
+  const rows = (parsed.items || []).filter(x => x && ids.has(x.id) && x.sentence && x.q && x.a && x.b)
+    .map(x => ['listening', x.q, x.a, x.b, x.c || '', x.d || '', 'A', x.sentence, x.id]);
+  return json(200, { rows, level, course, model: env.GEN_MODEL || 'gpt-5.4-mini', usage: data.usage || null });
+}
+
+// ---- Text to speech for listening items (cached at the edge by text+speed) ----
+const TTS_VOICES = ['marin', 'cedar', 'alloy', 'ash', 'ballad', 'coral', 'echo', 'sage', 'shimmer', 'verse', 'nova', 'onyx', 'fable'];
+async function tts(body, env, cors) {
+  const corsHeaders = (_r, extra) => Object.assign({}, cors, extra);
+  const text = String(body.text || '').trim().slice(0, 600);
+  if (!text) return new Response(JSON.stringify({ error: 'text required' }), { status: 400, headers: corsHeaders(request, { 'Content-Type': 'application/json' }) });
+  const speedRaw = parseFloat(body.speed);
+  const speed = speedRaw >= 0.5 && speedRaw <= 1.5 ? Math.round(speedRaw * 100) / 100 : 1;
+  const voice = TTS_VOICES.includes(body.voice) ? body.voice : 'marin';
+  const model = env.TTS_MODEL || 'gpt-4o-mini-tts';
+  const key = 'https://tts.cache/' + await sha256Hex(model + '|' + voice + '|' + speed + '|' + text);
+  const cache = caches.default;
+  let hit = await cache.match(key);
+  if (hit) { const h = corsHeaders(request, { 'Content-Type': 'audio/mpeg', 'X-Cache': 'HIT' }); return new Response(hit.body, { status: 200, headers: h }); }
+  const mk = (v) => fetch('https://api.openai.com/v1/audio/speech', { method: 'POST', headers: { Authorization: 'Bearer ' + env.OPENAI_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model, voice: v, input: text, response_format: 'mp3', speed, instructions: 'Read this once, clearly, for a language learner. ' + (speed < 0.9 ? 'Slow, with small pauses between phrases.' : 'Natural pace.') }) });
+  let r = await mk(voice);
+  if (!r.ok && voice !== 'alloy') { r = await mk('alloy'); } // older model builds may not know the newest voices
+  if (!r.ok) { const d = await r.json().catch(() => ({})); return new Response(JSON.stringify({ error: 'openai: ' + (d.error && d.error.message || r.statusText) }), { status: r.status, headers: corsHeaders(request, { 'Content-Type': 'application/json' }) }); }
+  const buf = await r.arrayBuffer();
+  await cache.put(key, new Response(buf, { headers: { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=2592000' } }));
+  return new Response(buf, { status: 200, headers: corsHeaders(request, { 'Content-Type': 'audio/mpeg', 'X-Cache': 'MISS' }) });
 }
