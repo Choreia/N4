@@ -270,7 +270,7 @@ footer{max-width:1140px;margin:0 auto;padding:18px 22px;color:var(--muted);font-
   <main id="main"></main>
 </div>
 
-<footer>Choreia Learn ─ Japanese N5–N1 / English. Answers are saved to your organization's spreadsheet. M2Labo · Japanese vocabulary, kanji and grammar data: <a href="https://github.com/KartikDhar09/hanasu" target="_blank" rel="noopener">Hanasu</a> by Kartik Dhar</footer>
+<footer>Choreia Learn ─ Japanese N5–N1 / English. Answers are saved to your organization's spreadsheet. M2Labo · Japanese vocabulary, kanji and grammar data: <a href="https://github.com/KartikDhar09/hanasu" target="_blank" rel="noopener">Hanasu</a> by Kartik Dhar (N5/N4) · <a href="https://github.com/jamsinclair/open-anki-jlpt-decks" target="_blank" rel="noopener">open-anki-jlpt-decks</a> (MIT) · <a href="https://github.com/davidluzgouveia/kanji-data" target="_blank" rel="noopener">kanji-data</a> (MIT) · English word lists: <a href="https://github.com/openlanguageprofiles/olp-en-cefrj" target="_blank" rel="noopener">CEFR-J / Octanove Vocabulary Profile</a> (CC BY-SA 4.0) · glosses: <a href="https://github.com/kujirahand/EJDict" target="_blank" rel="noopener">EJDict-hand</a> (public domain)</footer>
 
 <div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal"></div></div>
 <div class="toast" id="toast"></div>
@@ -307,11 +307,11 @@ var COURSES={
     {id:'vocab',label:'単語',sub:'Vocabulary'},{id:'grammar',label:'文法',sub:'Grammar'},{id:'expressions',label:'表現',sub:'Expressions'},{id:'reading',label:'読解',sub:'Reading'}]}
 };
 var UI={
-  en:{study:'Study',progress:'Progress',pick:'Pick a category and the number of questions. Each answer and its time are saved.',all:'All categories',allsub:'ぜんぶ',questions:'questions',nq:'Questions:',start:'Start ▶',today:'Today',total:'Total',answers:'answers',noq:'No questions yet. Ask the admin to fill the 問題 sheet.',next:'Next ▶',results:'See results',quit:'Quit',correct:'Correct!',wrong:'Not quite.',pct:'correct',totaltime:'total',perq:'per question',q:'Question',your:'Your answer',result:'Result',time:'Time',again:'Study again',unsaved:'answers not yet saved.',retry:'Retry',learner:'Learner',none:'No answers yet.',acc:'accuracy',avg:'avg time / question',days:'days studied',bycat:'By category',category:'Category',sessions:'Recent sessions',date:'Date',score:'Score',review:'Needs review',mixed:'Mixed',course:'Course',nocat:'No questions in this category',set:'Daily set',setdesc:'20 new questions every day, repeated three times (9:00 / 13:00 / 17:00). Tomorrow moves on to the next 20.',day:'Day',startset:'Start the set ▶',mastered:'Mastered',lastrun:'Last run',prevrun:'Previous run',thisrun:'this run',free:'Free practice',sethist:'Daily set history',slot:'Slot'},
-  ja:{study:'学習',progress:'進捗',pick:'分野と問題数を選んでください。回答と回答時間は1問ごとに記録されます。',all:'全分野',allsub:'All',questions:'問',nq:'問題数:',start:'開始 ▶',today:'今日',total:'累計',answers:'問',noq:'問題がまだありません。管理者が「問題」シートに追加してください。',next:'次へ ▶',results:'結果を見る',quit:'中断',correct:'正解！',wrong:'不正解',pct:'正答率',totaltime:'合計',perq:'1問あたり',q:'問題',your:'あなたの回答',result:'正誤',time:'時間',again:'もう一度',unsaved:'件の回答が未保存です。',retry:'再試行',learner:'学習者',none:'まだ回答がありません。',acc:'正答率',avg:'平均回答時間',days:'学習日数',bycat:'分野別',category:'分野',sessions:'最近のセッション',date:'日時',score:'得点',review:'要復習',mixed:'複数',course:'コース',nocat:'この分野の問題がありません',set:'今日のセット',setdesc:'1日20問を覚えます。同じ20問を9時・13時・17時の3回繰り返し、翌日は次の20問に進みます。',day:'Day',startset:'セットを始める ▶',mastered:'習得済み',lastrun:'前回',prevrun:'前回',thisrun:'今回',free:'自由練習',sethist:'セットの履歴',slot:'回'}
+  en:{study:'Study',progress:'Progress',pick:'Pick a category and the number of questions. Each answer and its time are saved.',all:'All categories',allsub:'ぜんぶ',questions:'questions',nq:'Questions:',start:'Start ▶',today:'Today',total:'Total',answers:'answers',noq:'No questions yet. Ask the admin to fill the 問題 sheet.',next:'Next ▶',results:'See results',quit:'Quit',correct:'Correct!',wrong:'Not quite.',pct:'correct',totaltime:'total',perq:'per question',q:'Question',your:'Your answer',result:'Result',time:'Time',again:'Study again',unsaved:'answers not yet saved.',retry:'Retry',learner:'Learner',none:'No answers yet.',acc:'accuracy',avg:'avg time / question',days:'days studied',bycat:'By category',category:'Category',sessions:'Recent sessions',date:'Date',score:'Score',review:'Needs review',mixed:'Mixed',course:'Course',nocat:'No questions in this category',set:'Daily set',setdesc:'20 questions per session (9:00 / 13:00 / 17:00). A question you answer correctly twice in a row is done and never comes back; the rest are replaced by new, harder ones. When your level runs out of questions, the next level is used.',day:'Day',startset:'Start the set ▶',mastered:'Mastered',lastrun:'Last run',prevrun:'Previous run',thisrun:'this run',free:'Free practice',sethist:'Daily set history',slot:'Slot'},
+  ja:{study:'学習',progress:'進捗',pick:'分野と問題数を選んでください。回答と回答時間は1問ごとに記録されます。',all:'全分野',allsub:'All',questions:'問',nq:'問題数:',start:'開始 ▶',today:'今日',total:'累計',answers:'問',noq:'問題がまだありません。管理者が「問題」シートに追加してください。',next:'次へ ▶',results:'結果を見る',quit:'中断',correct:'正解！',wrong:'不正解',pct:'正答率',totaltime:'合計',perq:'1問あたり',q:'問題',your:'あなたの回答',result:'正誤',time:'時間',again:'もう一度',unsaved:'件の回答が未保存です。',retry:'再試行',learner:'学習者',none:'まだ回答がありません。',acc:'正答率',avg:'平均回答時間',days:'学習日数',bycat:'分野別',category:'分野',sessions:'最近のセッション',date:'日時',score:'得点',review:'要復習',mixed:'複数',course:'コース',nocat:'この分野の問題がありません',set:'今日のセット',setdesc:'1回20問(9時・13時・17時)。2回連続で正解した問題は習得済みとして二度と出ません。残りは新しい・難しい問題に入れ替わり、レベルの在庫が尽きたら上のレベルの問題が出ます。',day:'Day',startset:'セットを始める ▶',mastered:'習得済み',lastrun:'前回',prevrun:'前回',thisrun:'今回',free:'自由練習',sethist:'セットの履歴',slot:'回'}
 };
-Object.assign(UI.en,{voice:'Voice',speaking:'Speaking',listening:'Listening',voicedesc:"Practice with an AI tutor using today's set. Speaking: a conversation where you try to use each word. Listening: the tutor reads a short sentence and asks a question about it. Everything you both say is saved as text, so your progress can be reviewed.",startvoice:'Start ▶',endvoice:'End session',connecting:'Connecting…',live:'Live — speak when the tutor pauses',ending:'Getting feedback…',ended:'Session ended',micerr:'Microphone not available',tutor:'Tutor',you:'You',todaywords:"Today's words",voicehist:'Voice sessions',turns:'your turns',minutes:'min',mode:'Mode',notconfigured:'Voice is not set up yet on the server. Ask the admin.',limit:'A session ends automatically after 10 minutes. Use earphones to avoid echo.',speakdesc:'Conversation. The tutor asks short questions so that you use today\'s words.',listendesc:'The tutor reads one sentence per word, then asks a question. Answer by voice.',transcript:'Transcript',lastsession:'Last session',score:'Score',fluency:'Fluency',accuracy:'Accuracy',vocabuse:"Today's words",wordsused:'Words you used',good:'Good',fix:'To fix',scoring:'Scoring…',skillmeter:'Skill meter',compare:'Compare with',radardesc:'0–100 per axis. Words = mastered share of the words introduced so far; accuracy and speed = quiz, last 7 days; consistency = daily-set slots done in the last 7 days; speaking/listening = tutor scores of the last 5 sessions.',learners:'Learners',radar_vocab:'Words',radar_accuracy:'Accuracy',radar_speed:'Speed',radar_consistency:'Consistency',radar_speaking:'Speaking',radar_listening:'Listening',level:'Level',levelauto:'Adjusts automatically from your results (3 sets ≥90% and ≤4 s → up; 3 sets <60% → down). You can also change it here.',generating:'Generating new questions for your level…',generated:'new questions added',genfail:'Could not generate questions:',newtoday:'new today',leveledup:'Level up!',leveleddown:'Level adjusted',remaining:'left at this level',activity:'Activity',todaydone:'Today ✓',notyet:'Not yet today',streak:'day streak',last30:'Active days, last 30:',less:'Less',more:'More',everyone:'Everyone'});
-Object.assign(UI.ja,{voice:'音声',speaking:'スピーキング',listening:'リスニング',voicedesc:'今日のセットの単語でAI講師と練習します。スピーキング=単語を使う会話、リスニング=講師が短い文を読み上げて質問します。双方の発話は文字で保存され、あとから振り返れます。',startvoice:'開始 ▶',endvoice:'終了する',connecting:'接続中…',live:'会話中 — 講師が止まったら話してください',ending:'講評を待っています…',ended:'終了しました',micerr:'マイクを使えません',tutor:'講師',you:'あなた',todaywords:'今日の単語',voicehist:'音声セッション',turns:'あなたの発話',minutes:'分',mode:'モード',notconfigured:'音声機能はまだサーバー側の設定が済んでいません。管理者に連絡してください。',limit:'1セッションは10分で自動終了します。エコー防止のためイヤホン推奨。',speakdesc:'会話。講師が短い質問をして、今日の単語を使う場面を作ります。',listendesc:'講師が単語ごとに1文を読み上げて質問します。声で答えてください。',transcript:'会話の記録',lastsession:'前回',score:'スコア',fluency:'流暢さ',accuracy:'正確さ',vocabuse:'今日の単語',wordsused:'使えた単語',good:'良かった点',fix:'直す点',scoring:'採点中…',skillmeter:'スキルメーター',compare:'比較',radardesc:'各軸0〜100。習得=これまで出た単語のうち習得済みの割合／正確さ・速さ=直近7日のクイズ／継続=直近7日のセット実施回数／スピーキング・リスニング=直近5回の講師スコア。',learners:'学習者',radar_vocab:'習得',radar_accuracy:'正確さ',radar_speed:'速さ',radar_consistency:'継続',radar_speaking:'スピーキング',radar_listening:'リスニング',level:'レベル',levelauto:'成績から自動調整します(3セット連続で正答率90%以上かつ平均4秒以下→上げる／3セット連続60%未満→下げる)。ここで手動変更もできます。',generating:'あなたのレベルの新しい問題を生成しています…',generated:'問を追加しました',genfail:'問題を生成できませんでした:',newtoday:'今日の新出',leveledup:'レベルアップ！',leveleddown:'レベルを調整しました',remaining:'このレベルの残り',activity:'学習の記録',todaydone:'今日 ✓',notyet:'今日はまだ',streak:'日連続',last30:'直近30日の学習日数',less:'少',more:'多',everyone:'みんな'});
+Object.assign(UI.en,{voice:'Voice',speaking:'Speaking',listening:'Listening',voicedesc:"Practice with an AI tutor using today's set. Speaking: a conversation where you try to use each word. Listening: the tutor reads a short sentence and asks a question about it. Everything you both say is saved as text, so your progress can be reviewed.",startvoice:'Start ▶',endvoice:'End session',connecting:'Connecting…',live:'Live — speak when the tutor pauses',ending:'Getting feedback…',ended:'Session ended',micerr:'Microphone not available',tutor:'Tutor',you:'You',todaywords:"Today's words",voicehist:'Voice sessions',turns:'your turns',minutes:'min',mode:'Mode',notconfigured:'Voice is not set up yet on the server. Ask the admin.',limit:'A session ends automatically after 10 minutes. Use earphones to avoid echo.',speakdesc:'Conversation. The tutor asks short questions so that you use today\'s words.',listendesc:'The tutor reads one sentence per word, then asks a question. Answer by voice.',transcript:'Transcript',lastsession:'Last session',score:'Score',fluency:'Fluency',accuracy:'Accuracy',vocabuse:"Today's words",wordsused:'Words you used',good:'Good',fix:'To fix',scoring:'Scoring…',skillmeter:'Skill meter',compare:'Compare with',radardesc:'0–100 per axis. Words = mastered share of the words introduced so far; accuracy and speed = quiz, last 7 days; consistency = daily-set slots done in the last 7 days; speaking/listening = tutor scores of the last 5 sessions.',learners:'Learners',radar_vocab:'Words',radar_accuracy:'Accuracy',radar_speed:'Speed',radar_consistency:'Consistency',radar_speaking:'Speaking',radar_listening:'Listening',level:'Level',levelauto:'Adjusted automatically (one set at 90%+ → level up / two sets in a row under 50% → level down). You can also change it here.',generating:'Generating new questions for your level…',generated:'new questions added',genfail:'Could not generate questions:',newtoday:'new today',leveledup:'Level up!',leveleddown:'Level adjusted',remaining:'left at this level',activity:'Activity',todaydone:'Today ✓',notyet:'Not yet today',streak:'day streak',last30:'Active days, last 30:',less:'Less',more:'More',everyone:'Everyone'});
+Object.assign(UI.ja,{voice:'音声',speaking:'スピーキング',listening:'リスニング',voicedesc:'今日のセットの単語でAI講師と練習します。スピーキング=単語を使う会話、リスニング=講師が短い文を読み上げて質問します。双方の発話は文字で保存され、あとから振り返れます。',startvoice:'開始 ▶',endvoice:'終了する',connecting:'接続中…',live:'会話中 — 講師が止まったら話してください',ending:'講評を待っています…',ended:'終了しました',micerr:'マイクを使えません',tutor:'講師',you:'あなた',todaywords:'今日の単語',voicehist:'音声セッション',turns:'あなたの発話',minutes:'分',mode:'モード',notconfigured:'音声機能はまだサーバー側の設定が済んでいません。管理者に連絡してください。',limit:'1セッションは10分で自動終了します。エコー防止のためイヤホン推奨。',speakdesc:'会話。講師が短い質問をして、今日の単語を使う場面を作ります。',listendesc:'講師が単語ごとに1文を読み上げて質問します。声で答えてください。',transcript:'会話の記録',lastsession:'前回',score:'スコア',fluency:'流暢さ',accuracy:'正確さ',vocabuse:'今日の単語',wordsused:'使えた単語',good:'良かった点',fix:'直す点',scoring:'採点中…',skillmeter:'スキルメーター',compare:'比較',radardesc:'各軸0〜100。習得=これまで出た単語のうち習得済みの割合／正確さ・速さ=直近7日のクイズ／継続=直近7日のセット実施回数／スピーキング・リスニング=直近5回の講師スコア。',learners:'学習者',radar_vocab:'習得',radar_accuracy:'正確さ',radar_speed:'速さ',radar_consistency:'継続',radar_speaking:'スピーキング',radar_listening:'リスニング',level:'レベル',levelauto:'成績から自動調整します(1セットで正答率90%以上→上げる／2セット連続50%未満→下げる)。ここで手動変更もできます。',generating:'あなたのレベルの新しい問題を生成しています…',generated:'問を追加しました',genfail:'問題を生成できませんでした:',newtoday:'今日の新出',leveledup:'レベルアップ！',leveleddown:'レベルを調整しました',remaining:'このレベルの残り',activity:'学習の記録',todaydone:'今日 ✓',notyet:'今日はまだ',streak:'日連続',last30:'直近30日の学習日数',less:'少',more:'多',everyone:'みんな'});
 function T(k){return (UI[COURSES[course].ui]||UI.en)[k]||k;}
 function catLabel(id){var cs=COURSES[course].cats;for(var i=0;i<cs.length;i++)if(cs[i].id===id)return cs[i].label;return id;}
 
@@ -1216,7 +1216,7 @@ function toRow(obj,fields){return fields.map(function(f){return obj[f]===undefin
 function colLetter(n){var s='';while(n>0){var mm=(n-1)%26;s=String.fromCharCode(65+mm)+s;n=Math.floor((n-1)/26);}return s;}
 async function loadAllData(){
   var id=getSheetId();if(!id)return;
-  var ranges=SHEET_DEFS.map(function(s){return 'ranges='+encodeURIComponent(s.title+'!A2:'+colLetter(s.fields.length)+'20000');}).join('&');
+  var ranges=SHEET_DEFS.map(function(s){return 'ranges='+encodeURIComponent(s.title+'!A2:'+colLetter(s.fields.length)+'200000');}).join('&');
   var data=await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+id+'/values:batchGet?'+ranges);
   var vr=data.valueRanges||[];
   questions=parseRows(vr[0]&&vr[0].values,Q_FIELDS).filter(function(q){return String(q.active||'yes').toLowerCase()!=='no'&&q.q&&q.a&&q.b;});questions.forEach(function(q){q.course=(q.course||'jp').toLowerCase();q.level=String(q.level||DEFAULT_LEVEL[q.course]||'').toUpperCase();});
@@ -1237,7 +1237,7 @@ function queueLog(l){logs.push(l);pendingLogs.push(l);flushLogs();}
 function isAdmin(){if(!orgConfig)return false;return (orgConfig.admins||[orgConfig.admin]).indexOf(currentUser.email)!==-1;}
 
 // ==================== Tabs & render ====================
-function showMainView(){showView('main');document.getElementById('btn-admin').style.display=isAdmin()?'':'none';if(!viewEmail)viewEmail=currentUser.email;render();}
+function showMainView(){showView('main');document.getElementById('btn-admin').style.display=isAdmin()?'':'none';if(!viewEmail)viewEmail=currentUser.email;render();setTimeout(autoImportPacks,500);}
 function setTab(t){tab=t;render();}
 function render(){
   var tabs=[{id:'study',l:T('study')},{id:'voice',l:'🎙 '+T('voice')},{id:'progress',l:T('progress')}];
@@ -1278,14 +1278,14 @@ function levelSelect(email){
   email=(email||currentUser.email).toLowerCase();if(email!==currentUser.email.toLowerCase()&&!isAdmin())return levelBadge(email);
   return '<select onchange="setLearnerLevel(\''+escapeAttr(email)+'\',course,this.value,\'manual\')">'+LEVELS[course].map(function(l){return '<option value="'+l+'" '+(l===learnerLevel(email,course)?'selected':'')+'>'+l+' — '+escapeHtml(LEVEL_DESC[course][l])+'</option>';}).join('')+'</select>';
 }
-// 直近の成績からレベルを自動調整(セット完了時に呼ぶ)。上げる=直近3セット全て正答率90%以上かつ平均4秒以下(または85%以上+直近スピーキング85点以上)。下げる=直近3セット全て60%未満。
+// 直近の成績からレベルを自動調整(セット完了時に呼ぶ)。上げる=直近1セットで正答率90%以上。下げる=直近2セット連続で50%未満。(2026-11-02 安河内: 解けた問題は繰り返さない・どんどん難しく)
 function autoLevelCheck(){
-  var email=currentUser.email.toLowerCase();var ss=setSessions(email).slice(0,3);if(ss.length<3)return null;
+  var email=currentUser.email.toLowerCase();var ss=setSessions(email).slice(0,2);if(!ss.length)return null;
   var lv=learnerLevel(email,course);var since=lastLevelChangeDate(email,course);
-  if(ss.some(function(a){return (a[0].at||'').slice(0,10)<since;}))return null; // レベル変更前のセットは数えない
-  var st=ss.map(stats);var vs=voiceSessions(email).map(voiceSessionSummary).filter(function(s){return s.score&&s.mode==='speaking';});var vbest=vs.length?vs[0].score.score:0;
-  var strong=st.every(function(s){return s.acc>=90&&s.avg<=4;})||(st.every(function(s){return s.acc>=85;})&&vbest>=85);
-  var weak=st.every(function(s){return s.acc<60;});
+  ss=ss.filter(function(a){return (a[0].at||'').slice(0,10)>=since;});if(!ss.length)return null; // レベル変更前のセットは数えない
+  var st=ss.map(stats);
+  var strong=st[0].acc>=90&&st[0].n>=setSize()*0.8; // 直近1セットで90%以上 → すぐ上げる
+  var weak=st.length>=2&&st.every(function(s){return s.acc<50;});
   var i=LEVELS[course].indexOf(lv);
   if(strong&&i<LEVELS[course].length-1)return {to:LEVELS[course][i+1],dir:'up'};
   if(weak&&i>0)return {to:LEVELS[course][i-1],dir:'down'};
@@ -1314,41 +1314,56 @@ async function generateQuestions(c,lv,n,silent){
   finally{generating=false;}
 }
 // ==================== Import Hanasu (Kartik Dhar) question bank ====================
-var HANASU_JSON='hanasu_jp.json'; // tools/import_hanasu.py が生成(同一オリジン)
-async function importHanasu(){
-  if(generating)return;generating=true;var btn=document.getElementById('hanasu-btn');if(btn)btn.disabled=true;
+// packs/index.json に並ぶパック(hanasu_jp.json, packs/*.json)を全部読み、「問題」シートに無い問題だけ追加する。
+// 管理者がログインすると自動で走る(packsImported フラグで1セッション1回)。手動は管理タブのボタン。
+var PACK_INDEX='packs/index.json';var packsImported=false;
+async function importPacks(manual){
+  if(generating)return;generating=true;var btn=document.getElementById('packs-btn');if(btn)btn.disabled=true;
   try{
-    var r=await fetch(HANASU_JSON+'?v='+Date.now());if(!r.ok)throw new Error('hanasu_jp.json '+r.status);var d=await r.json();
-    var have={};questions.forEach(function(q){if(q.course==='jp')have[q.q]=1;});
-    var rows=(d.rows||[]).filter(function(x){return !have[x[1]];});
-    if(!rows.length){showToast('追加する問題はありません(すべて取込済み)');return;}
-    if(!confirm('Hanasu の問題 '+rows.length+' 問(日本語コース・レベル別)を「問題」シートに追加します。よろしいですか？'))return;
-    var mx=0;questions.forEach(function(q){var m=String(q.id||'').match(/^JP-(\d+)$/);if(m)mx=Math.max(mx,parseInt(m[1],10));});
-    var values=rows.map(function(x,i){return ['JP-'+pad(mx+1+i).padStart(4,'0'),x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],'yes','jp',x[8]];});
-    for(var i=0;i<values.length;i+=500){showToast('追加中… '+Math.min(i+500,values.length)+' / '+values.length);
-      await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+getSheetId()+'/values/'+encodeURIComponent('問題!A:ZZ')+':append?valueInputOption=RAW&insertDataOption=INSERT_ROWS',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:values.slice(i,i+500)})});}
-    await loadAllDataSafe();showToast(values.length+'問を追加しました');render();
-  }catch(e){console.error(e);showToast('取込に失敗: '+e.message);}
+    var ir=await fetch(PACK_INDEX+'?v='+Date.now());if(!ir.ok)throw new Error('packs/index.json '+ir.status);var idx=await ir.json();
+    var have={};questions.forEach(function(q){have[(q.course||'jp')+'\n'+q.q]=1;});
+    var byCourse={};
+    for(var p=0;p<(idx.packs||[]).length;p++){
+      var name=idx.packs[p];var url=(name.indexOf('../')===0?name.slice(3):'packs/'+name)+'?v='+Date.now();
+      var r=await fetch(url);if(!r.ok){console.warn('pack',name,r.status);continue;}var d=await r.json();var c=d.course||'jp';
+      (d.rows||[]).forEach(function(x){var k=c+'\n'+x[1];if(have[k])return;have[k]=1;(byCourse[c]=byCourse[c]||[]).push(x);});
+    }
+    var total=0;Object.keys(byCourse).forEach(function(c){total+=byCourse[c].length;});
+    if(!total){if(manual)showToast('追加する問題はありません(すべて取込済み)');return;}
+    var cs=Object.keys(byCourse);
+    for(var ci=0;ci<cs.length;ci++){var c=cs[ci];var rows=byCourse[c];var prefix=c.toUpperCase();
+      var mx=0;questions.forEach(function(q){var m=String(q.id||'').match(new RegExp('^'+prefix+'-(\\d+)$'));if(m)mx=Math.max(mx,parseInt(m[1],10));});
+      var values=rows.map(function(x,i){return [prefix+'-'+pad(mx+1+i).padStart(4,'0'),x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],'yes',c,x[8]||''];});
+      for(var i=0;i<values.length;i+=500){showToast('問題を追加中('+c+')… '+Math.min(i+500,values.length)+' / '+values.length);
+        await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+getSheetId()+'/values/'+encodeURIComponent('問題!A:ZZ')+':append?valueInputOption=RAW&insertDataOption=INSERT_ROWS',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:values.slice(i,i+500)})});}
+      questions=questions.concat(parseRows(values,Q_FIELDS).map(function(q){q.course=(q.course||'jp').toLowerCase();q.level=String(q.level||DEFAULT_LEVEL[q.course]||'').toUpperCase();return q;}));}
+    await loadAllDataSafe();showToast(total+'問を追加しました');render();
+  }catch(e){console.error(e);showToast('問題パックの取込に失敗: '+e.message);}
   finally{generating=false;if(btn)btn.disabled=false;}
 }
+function importHanasu(){return importPacks(true);}
+function autoImportPacks(){if(packsImported||!isAdmin()||!getSheetId())return;packsImported=true;importPacks(false);}
 async function adminGenerate(){var c=document.getElementById('gen-course').value;var lv=document.getElementById('gen-level').value;var n=parseInt(document.getElementById('gen-n').value,10)||20;await generateQuestions(c,lv,n);render();}
-// ==================== Fixed set (same N questions, 3 times a day) ====================
+// ==================== Daily set (N questions per slot; solved questions drop out, harder ones come in) ====================
 var SLOTS=[9,13,17]; // 設定シート slots で上書き(loadAllData)
 function setSize(){var n=parseInt(sheetSettings.set_size,10);return n>0?n:20;}
 function masteryOf(email){ // qid -> {streak, n, c}
   var m={};myLogs(email).forEach(function(l){var x=m[l.qid]=m[l.qid]||{streak:0,n:0,c:0};x.n++;if(l.correct==='1'){x.c++;x.streak++;}else x.streak=0;});return m;}
-function isMastered(x){return !!x&&x.streak>=3;}
+function isMastered(x){return !!x&&x.streak>=2;}
 function dayIndex(email){ // 今日より前に「セット」をやった日数 = 今日は何日目か(0始まり)
   var t=todayISO(),d={};setSessions(email).forEach(function(a){var day=(a[0].at||'').slice(0,10);if(day&&day<t)d[day]=1;});return Object.keys(d).length;}
+function poolQsUp(email){ // 自分のレベル以上の問題(レベル順)。在庫が尽きたら上のレベルへ進む
+  var c=course,i=levelIdx(email,c),out=[];for(var k=i;k<LEVELS[c].length;k++){var lv=LEVELS[c][k];out=out.concat(courseQs().filter(function(q){return q.level===lv;}));}
+  if(!out.length)out=courseQs().filter(function(q){return !q.level;});return out;}
 function currentSet(email){
-  var n=setSize();var t=todayISO();
-  var todays=setSessions(email).filter(function(a){return (a[0].at||'').slice(0,10)===t;});
-  if(todays.length){var first=todays[todays.length-1];var ids={};first.forEach(function(l){ids[l.qid]=1;});var fixed=courseQs().filter(function(q){return ids[q.id];});if(fixed.length)return fixed;}
-  var pool=poolQs(email);if(!pool.length)return [];
-  var m=masteryOf(email);var fresh=pool.filter(function(q){return !isMastered(m[q.id]);});
+  var n=setSize();var t=todayISO();var m=masteryOf(email);
+  var todayWrong={};myLogs(email).forEach(function(l){if((l.at||'').slice(0,10)===t&&l.correct!=='1')todayWrong[l.qid]=1;});
+  var fresh=poolQsUp(email).filter(function(q){return !isMastered(m[q.id]);});
+  var rank=function(q){var x=m[q.id];if(todayWrong[q.id]&&!(x&&x.streak>=1))return 0;if(!x)return 1;return 2;}; // 今日間違えた(まだ正解してない) > 未出題 > 過去に間違えた
+  fresh.sort(function(a,b){return rank(a)-rank(b);});
   return fresh.slice(0,n);
 }
-function setNeed(email){var n=setSize();var m=masteryOf(email);var fresh=poolQs(email).filter(function(q){return !isMastered(m[q.id]);});return Math.max(0,n-fresh.length);}
+function setNeed(email){var n=setSize();var m=masteryOf(email);var fresh=poolQsUp(email).filter(function(q){return !isMastered(m[q.id]);});return Math.max(0,n-fresh.length);}
 function setRangeLabel(email){return learnerLevel(email,course);}
 function masteredCount(email){var m=masteryOf(email);return courseQs().filter(function(q){return isMastered(m[q.id]);}).length;}
 function slotOf(at){var h=parseInt(String(at||'').slice(11,13),10);if(isNaN(h))return -1;var best=0;SLOTS.forEach(function(s,i){if(Math.abs(h-s)<Math.abs(h-SLOTS[best]))best=i;});return best;}
@@ -1852,7 +1867,7 @@ function renderAdmin(){
   h+='<div class="card"><h3 style="margin-top:0">問題の生成(レベル別)</h3><p class="hint">学習者のレベルで問題が足りないときは「今日のセット」開始時に自動生成されます。ここでは手動で足せます(gpt-5.4-mini・20問あたり数円)。</p>';
   h+='<div class="cfgrow"><b>在庫</b>'+Object.keys(COURSES).map(function(c){return COURSES[c].label+': '+LEVELS[c].map(function(l){return l+' '+questions.filter(function(q){return q.course===c&&q.level===l;}).length;}).join(' / ');}).join('<br>')+'</div>';
   h+='<div class="cfgrow"><select id="gen-course" onchange="var l=document.getElementById(\'gen-level\');l.innerHTML=LEVELS[this.value].map(function(x){return \'<option>\'+x+\'</option>\';}).join(\'\')">'+Object.keys(COURSES).map(function(c){return '<option value="'+c+'">'+COURSES[c].label+'</option>';}).join('')+'</select> <select id="gen-level">'+LEVELS.jp.map(function(x){return '<option>'+x+'</option>';}).join('')+'</select> <input id="gen-n" type="number" value="20" min="1" max="40" style="width:70px"> 問 <button class="btn small" onclick="adminGenerate()">生成して追加</button></div>';
-  h+='<div class="cfgrow"><b>Hanasuの問題</b>Kartik Dharさん作 <a href="https://github.com/KartikDhar09/hanasu" target="_blank" rel="noopener">Hanasu</a> の語彙1,818語・漢字270・文法187(N5/N4)を4択に変換したもの(tools/import_hanasu.py)。未取込分だけ追加します。 <button id="hanasu-btn" class="btn small" onclick="importHanasu()">Hanasuの問題を取り込む</button></div>';
+  h+='<div class="cfgrow"><b>問題パック</b>同梱の問題パック(Hanasu N5/N4 2,275問・JLPT語彙N3〜N1・漢字N3〜N1・英語B2/C1、計1万問超)のうち「問題」シートに無いものを追加します。管理者がログインしたとき自動で走ります。 <button id="packs-btn" class="btn small" onclick="importPacks(true)">今すぐ取り込む</button></div>';
   h+='<div class="cfgrow"><b>学習者のレベル</b>'+allLearners().map(function(l){return escapeHtml(l.name)+': '+Object.keys(COURSES).filter(function(c){return l.courses[c];}).map(function(c){return c+' '+learnerLevel(l.email,c);}).join(', ');}).join(' ／ ')+'<br><span class="hint">「設定」シートの level:メール:コース 行。履歴は levelhist:…</span></div></div>';
   h+='<div class="note" style="margin-top:14px"><b>コース列</b> jp=日本語N4(UI英語) / en=英語(UI日本語)。空欄はjp扱い。<br><b>分野ID</b> '+Object.keys(COURSES).map(function(c){return c+': '+COURSES[c].cats.map(function(x){return x.id+'='+x.label;}).join(', ');}).join(' ／ ')+'<br>正解列はA〜Dの文字。画面では選択肢の順番をシャッフルします。</div>';
   return h;

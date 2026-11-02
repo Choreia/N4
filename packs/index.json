@@ -1,0 +1,8 @@
+{
+ "packs": [
+  "../hanasu_jp.json",
+  "jp_vocab_n3n2n1.json",
+  "jp_kanji_n3n2n1.json",
+  "en_cefr_b2c1.json"
+ ]
+}
