@@ -204,7 +204,7 @@ const TTS_VOICES = ['marin', 'cedar', 'alloy', 'ash', 'ballad', 'coral', 'echo',
 async function tts(body, env, cors) {
   const corsHeaders = (_r, extra) => Object.assign({}, cors, extra);
   const text = String(body.text || '').trim().slice(0, 600);
-  if (!text) return new Response(JSON.stringify({ error: 'text required' }), { status: 400, headers: corsHeaders(request, { 'Content-Type': 'application/json' }) });
+  if (!text) return new Response(JSON.stringify({ error: 'text required' }), { status: 400, headers: corsHeaders(null, { 'Content-Type': 'application/json' }) });
   const speedRaw = parseFloat(body.speed);
   const speed = speedRaw >= 0.5 && speedRaw <= 1.5 ? Math.round(speedRaw * 100) / 100 : 1;
   const voice = TTS_VOICES.includes(body.voice) ? body.voice : 'marin';
@@ -212,7 +212,7 @@ async function tts(body, env, cors) {
   const key = 'https://tts.cache/' + await sha256Hex(model + '|' + voice + '|' + speed + '|' + text);
   const cache = caches.default;
   let hit = await cache.match(key);
-  if (hit) { const h = corsHeaders(request, { 'Content-Type': 'audio/mpeg', 'X-Cache': 'HIT' }); return new Response(hit.body, { status: 200, headers: h }); }
+  if (hit) { const h = corsHeaders(null, { 'Content-Type': 'audio/mpeg', 'X-Cache': 'HIT' }); return new Response(hit.body, { status: 200, headers: h }); }
   const call = (payload) => fetch('https://api.openai.com/v1/audio/speech', { method: 'POST', headers: { Authorization: 'Bearer ' + env.OPENAI_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
   const pace = speed < 0.9 ? 'Slow, with small pauses between phrases.' : 'Natural pace.';
   const attempts = [
@@ -232,5 +232,5 @@ async function tts(body, env, cors) {
   if (!r || !r.ok) return new Response(JSON.stringify({ error: 'openai tts: ' + String(lastErr).slice(0, 300) }), { status: 502, headers: corsHeaders(null, { 'Content-Type': 'application/json' }) });
   const buf = await r.arrayBuffer();
   try { await cache.put(key, new Response(buf, { headers: { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=2592000' } })); } catch (e) { console.log('tts cache put failed', e.message); }
-  return new Response(buf, { status: 200, headers: corsHeaders(request, { 'Content-Type': 'audio/mpeg', 'X-Cache': 'MISS' }) });
+  return new Response(buf, { status: 200, headers: corsHeaders(null, { 'Content-Type': 'audio/mpeg', 'X-Cache': 'MISS' }) });
 }
