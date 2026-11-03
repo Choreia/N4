@@ -1412,15 +1412,16 @@ async function fetchTts(text){
   var key=voiceSpeed()+'|'+text;if(ttsCache[key])return ttsCache[key];
   var call=async function(){return fetch(ttsUrl(),{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+accessToken},body:JSON.stringify({text:text,speed:voiceSpeed(),voice:'marin'})});};
   var r=await call();if(r.status===401){await refreshAccessToken();r=await call();}
-  if(!r.ok){var d={};try{d=await r.json();}catch(e){}throw new Error(d.error||('tts '+r.status));}
-  var url=URL.createObjectURL(await r.blob());ttsCache[key]=url;return url;}
+  if(!r.ok){var msg='';try{msg=await r.text();}catch(e){}try{msg=JSON.parse(msg).error||msg;}catch(e){}throw new Error('HTTP '+r.status+' '+String(msg).slice(0,160));}
+  var b=await r.blob();if(!b||!b.size)throw new Error('empty audio');var url=URL.createObjectURL(b);ttsCache[key]=url;return url;}
 var _audio=null;
 async function playItem(i){ // 今の問題の文を再生
   var it=quiz&&quiz.items[i!==undefined?i:quiz.i];if(!it||it.q.cat!=='listening')return;
   var btn=document.getElementById('play-btn');if(btn){btn.disabled=true;btn.textContent='…';}
-  try{var url=await fetchTts(it.q.exp);if(_audio){try{_audio.pause();}catch(e){}}_audio=new Audio(url);it.plays=(it.plays||0)+1;await _audio.play();}
-  catch(e){showToast(T('ttsfail')+' '+e.message);}
-  finally{if(btn){btn.disabled=false;btn.textContent='🔊 '+T('playagain');}}
+  var url=null;
+  try{url=await fetchTts(it.q.exp);}catch(e){showToast(T('ttsfail')+' '+e.message);}
+  if(url){try{if(_audio){try{_audio.pause();}catch(e){}}_audio=new Audio(url);it.plays=(it.plays||0)+1;await _audio.play();}catch(e){ /* autoplay blocked → user presses 再生 */ }}
+  if(btn){btn.disabled=false;btn.textContent='🔊 '+T('playagain');}
   if(quiz&&quiz.items[quiz.i+1]&&quiz.items[quiz.i+1].q.cat==='listening')fetchTts(quiz.items[quiz.i+1].q.exp).catch(function(){}); // 次を先読み
 }
 function listenSessions(email){ // sessions of listening set (id starts with L), newest first

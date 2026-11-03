@@ -213,12 +213,24 @@ async function tts(body, env, cors) {
   const cache = caches.default;
   let hit = await cache.match(key);
   if (hit) { const h = corsHeaders(request, { 'Content-Type': 'audio/mpeg', 'X-Cache': 'HIT' }); return new Response(hit.body, { status: 200, headers: h }); }
-  const mk = (v) => fetch('https://api.openai.com/v1/audio/speech', { method: 'POST', headers: { Authorization: 'Bearer ' + env.OPENAI_API_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, voice: v, input: text, response_format: 'mp3', speed, instructions: 'Read this once, clearly, for a language learner. ' + (speed < 0.9 ? 'Slow, with small pauses between phrases.' : 'Natural pace.') }) });
-  let r = await mk(voice);
-  if (!r.ok && voice !== 'alloy') { r = await mk('alloy'); } // older model builds may not know the newest voices
-  if (!r.ok) { const d = await r.json().catch(() => ({})); return new Response(JSON.stringify({ error: 'openai: ' + (d.error && d.error.message || r.statusText) }), { status: r.status, headers: corsHeaders(request, { 'Content-Type': 'application/json' }) }); }
+  const call = (payload) => fetch('https://api.openai.com/v1/audio/speech', { method: 'POST', headers: { Authorization: 'Bearer ' + env.OPENAI_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+  const pace = speed < 0.9 ? 'Slow, with small pauses between phrases.' : 'Natural pace.';
+  const attempts = [
+    { model, voice, input: text, response_format: 'mp3', speed, instructions: 'Read this once, clearly, for a language learner. ' + pace },
+    { model, voice, input: text, response_format: 'mp3', instructions: 'Read this once, clearly, for a language learner. ' + pace },
+    { model, voice: 'alloy', input: text, response_format: 'mp3' },
+    { model: 'tts-1', voice: 'alloy', input: text, response_format: 'mp3', speed },
+  ];
+  let r = null, lastErr = '';
+  for (const a of attempts) {
+    r = await call(a);
+    if (r.ok) break;
+    lastErr = await r.text().catch(() => r.statusText);
+    try { lastErr = JSON.parse(lastErr).error.message || lastErr; } catch (e) {}
+    console.log('tts attempt failed', a.model, a.voice, r.status, String(lastErr).slice(0, 200));
+  }
+  if (!r || !r.ok) return new Response(JSON.stringify({ error: 'openai tts: ' + String(lastErr).slice(0, 300) }), { status: 502, headers: corsHeaders(null, { 'Content-Type': 'application/json' }) });
   const buf = await r.arrayBuffer();
-  await cache.put(key, new Response(buf, { headers: { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=2592000' } }));
+  try { await cache.put(key, new Response(buf, { headers: { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'public, max-age=2592000' } })); } catch (e) { console.log('tts cache put failed', e.message); }
   return new Response(buf, { status: 200, headers: corsHeaders(request, { 'Content-Type': 'audio/mpeg', 'X-Cache': 'MISS' }) });
 }
