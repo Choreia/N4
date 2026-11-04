@@ -1,0 +1,4 @@
+worker/tests_src/
+worker/tests_built/
+node_modules/
+.wrangler/

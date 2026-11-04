@@ -50,3 +50,9 @@ Kartik Dhar さん作 [Hanasu](https://github.com/KartikDhar09/hanasu) の語彙
 - 不足分は Worker `/generate` (kind=listening) が gpt-5.4-mini で生成。読み上げは Worker `/tts` (gpt-4o-mini-tts, 速度=講師の話す速さ, エッジでキャッシュ)。
 - 記録は回答ログ(session=L始まり・cat=listening)。習得ルールは語彙と同じ(2回連続正解)。スキルメーターのリスニング軸=直近7日の正答率。
 - 音声タブのリスニング(AI会話型)はボタンを外した(旧データは記録に残る)。
+
+## 週末テスト（毎週金曜・最後の2時間）
+- テストタブ。JLPT（N5→N4→N3…）と英語（TOEIC形式）。本番と同じ区分・時間（N5=20/40/30分、TOEIC=L45/R75分、Part 1 写真問題は無し）、聴解は1回だけ、終えた区分には戻れない。
+- 問題と正解は公開リポジトリに置かない：`worker/tests_src/`（git管理外）→ `python3 tools/build_tests.py` → `worker/tests_built/`（git管理外）→ Worker デプロイ。Worker は `TEST_WINDOW`（既定 金 15:00–19:00 JST）の間だけ問題を配信し、採点する。
+- 結果＝「テスト結果」シート。同じレベルで `test_promote_after`（既定2）回続けて合格すると次のレベル（設定 `testlevel:メール:コース`、en は TOEIC 目標点 600/730/860/945）。
+- 新しい回を足すとき：`tests_src/tests.json` に1件追加し、問題ファイル（SPEC.md の書式・options[0]=正解）を置いて、ビルドしてデプロイする。

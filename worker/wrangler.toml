@@ -9,5 +9,9 @@ GOOGLE_CLIENT_ID = "595564106580-hsrunbvfacmr23d2jopl462taqilip75.apps.googleuse
 REALTIME_MODEL = "gpt-realtime-2.1-mini"
 GEN_MODEL = "gpt-5.4-mini"
 TOKEN_TTL_SECONDS = "300"
+# Weekly mock test: start allowed on <weekday JST>|from|to (5 = Friday). TEST_ANYTIME = comma list of emails allowed any time (for checks)
+TEST_WINDOW = "5|15:00|19:00"
+TEST_GRACE_MIN = "150"
+TEST_ANYTIME = ""
 # Secret (set with: npx wrangler secret put OPENAI_API_KEY)
 # OPENAI_API_KEY

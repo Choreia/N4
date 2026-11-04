@@ -198,6 +198,9 @@ footer{max-width:1140px;margin:0 auto;padding:18px 22px;color:var(--muted);font-
 .opt .k{width:28px;height:28px;border-radius:50%;background:var(--card);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--sub);flex:none}
 .opt.right{border-color:var(--ok);background:var(--ok-soft)}
 .opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.passage{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;line-height:1.85;font-size:1rem;margin-bottom:12px}
+.opt.picked{border-color:var(--accent);background:var(--accent-soft,#f3e6dc);font-weight:700}
+.opt.picked .k{background:var(--accent);color:#fff;border-color:var(--accent)}
 .opt:disabled{cursor:default}
 .exp{margin-top:16px;padding:12px 14px;border-radius:10px;background:var(--info-soft);color:var(--info);font-size:.92rem}
 .exp.bad{background:var(--bad-soft);color:var(--bad)}
@@ -1227,6 +1230,7 @@ async function loadAllData(){
   ensureCourseColumns();
   sheetSettings={};parseRows(vr[2]&&vr[2].values,SETTING_FIELDS).forEach(function(r){sheetSettings[r.key]=r.value;});SLOTS=slotsFromSettings();
   await loadVoiceLogs();
+  await loadTestResults();
   dataLoadError=null;
 }
 async function loadAllDataSafe(){try{await loadAllData();}catch(e){dataLoadError=e;console.error('loadAllData',e);showToast(/403/.test(String(e&&e.message))?'Cannot read the spreadsheet (no permission on the shared drive)':'Failed to load data');}}
@@ -1250,17 +1254,20 @@ function queueLog(l){logs.push(l);pendingLogs.push(l);savePending();flushLogs();
 function isAdmin(){if(!orgConfig)return false;return (orgConfig.admins||[orgConfig.admin]).indexOf(currentUser.email)!==-1;}
 
 // ==================== Tabs & render ====================
-function showMainView(){showView('main');document.getElementById('btn-admin').style.display=isAdmin()?'':'none';if(!viewEmail)viewEmail=currentUser.email;render();setTimeout(autoImportPacks,500);}
+function showMainView(){showView('main');restoreTestRun();document.getElementById('btn-admin').style.display=isAdmin()?'':'none';if(!viewEmail)viewEmail=currentUser.email;render();setTimeout(autoImportPacks,500);}
 function setTab(t){tab=t;render();}
 function render(){
-  var tabs=[{id:'study',l:T('study')},{id:'voice',l:'🎙 '+T('voice')},{id:'progress',l:T('progress')}];
+  var tabs=[{id:'study',l:T('study')},{id:'voice',l:'🎙 '+T('voice')},{id:'test',l:'📝 '+T('test')},{id:'progress',l:T('progress')}];
   if(isAdmin())tabs.push({id:'admin',l:'管理'});
+  var testLock=testRun&&['running','between','grading'].indexOf(testRun.status)!==-1;
+  if(testLock){tab='test';tabs=[{id:'test',l:'📝 '+T('testlocked')}];}
   document.getElementById('tabs').innerHTML=tabs.map(function(t){return '<button class="'+(tab===t.id?'on':'')+'" onclick="setTab(\''+t.id+'\')">'+t.l+'</button>';}).join('');
   var m=document.getElementById('main');
   if(dataLoadError){m.innerHTML='<div class="emptybox">Could not load data.<br><button class="btn small" onclick="reload()">Retry</button></div>';return;}
   if(tab==='study')m.innerHTML=quiz?renderQuiz():renderStudyHome();
   else if(tab==='voice')m.innerHTML=renderVoice();
   else if(tab==='progress')m.innerHTML=renderProgress();
+  else if(tab==='test')m.innerHTML=renderTest();
   else m.innerHTML=renderAdmin();
 }
 async function reload(){showToast('Reloading…');await loadAllDataSafe();render();}
@@ -1974,6 +1981,7 @@ function renderAdmin(){
   h+='<div class="cfgrow"><b>学習者の追加</b>スプレッドシート（上のリンク）を学習者のGoogleアカウントに「編集者」で共有してください。本人のログインで回答ログが書き込まれます。</div>';
   h+='<div class="cfgrow"><button class="btn ghost small" onclick="reload()">再読み込み</button></div></div>';
   h+=renderStudySettings();
+  h+=renderTestAdmin();
   h+='<div class="card"><h3 style="margin-top:0">問題の生成(レベル別)</h3><p class="hint">学習者のレベルで問題が足りないときは「今日のセット」開始時に自動生成されます。ここでは手動で足せます(gpt-5.4-mini・20問あたり数円)。</p>';
   h+='<div class="cfgrow"><b>在庫</b>'+Object.keys(COURSES).map(function(c){return COURSES[c].label+': '+LEVELS[c].map(function(l){return l+' '+questions.filter(function(q){return q.course===c&&q.level===l;}).length;}).join(' / ');}).join('<br>')+'</div>';
   h+='<div class="cfgrow"><select id="gen-course" onchange="var l=document.getElementById(\'gen-level\');l.innerHTML=LEVELS[this.value].map(function(x){return \'<option>\'+x+\'</option>\';}).join(\'\')">'+Object.keys(COURSES).map(function(c){return '<option value="'+c+'">'+COURSES[c].label+'</option>';}).join('')+'</select> <select id="gen-level">'+LEVELS.jp.map(function(x){return '<option>'+x+'</option>';}).join('')+'</select> <input id="gen-n" type="number" value="20" min="1" max="40" style="width:70px"> 問 <button class="btn small" onclick="adminGenerate()">生成して追加</button></div>';
@@ -1985,8 +1993,275 @@ function renderAdmin(){
 async function checkVoiceHealth(){var el=document.getElementById('voice-health');try{var r=await fetch(VOICE_TOKEN_URL.replace(/\/token$/,'/health'));var d=await r.json();el.textContent=d.configured?('OK ('+d.model+')'):'OPENAI_API_KEY 未設定 (npx wrangler secret put OPENAI_API_KEY)';}catch(e){el.textContent='接続できません: '+e.message;}}
 async function addAdmin(){var e=prompt('追加する管理者のメールアドレス');if(!e)return;e=e.trim().toLowerCase();if(!e)return;orgConfig.admins=orgConfig.admins||[orgConfig.admin];if(orgConfig.admins.indexOf(e)===-1)orgConfig.admins.push(e);if(await saveConfig()){showToast('追加しました');render();}}
 function openAdmin(){setTab('admin');}
+// ==================== Weekly mock test (Friday, last 2 hours) ====================
+// Questions/answer keys are served by the Worker only inside the test window (TEST_WINDOW, JST) and graded there.
+// Sections are timed like the real exam; listening plays once; you cannot go back to a finished section.
+// Results go to the 「テスト結果」 sheet. Level ladder: pass N times in a row at a level -> next level (設定 test_promote_after, default 2).
+var TEST_FIELDS=['at','email','name','course','test','level','scores','total','pass','correct','nq','sec','answers'];
+var TEST_SHEET={title:'テスト結果',headers:['日時','メール','氏名','コース','テストID','レベル(jp=N5..,en=目標点)','区分別スコア(JSON)','合計','合否(1/0)','正答数','問題数','所要秒','回答(JSON)']};
+var TEST_LADDER={jp:['N5','N4','N3','N2','N1'],en:['600','730','860','945']};
+var TEST_DEFAULT={jp:'N5',en:'730'};
+var TEST_RUN_KEY='choreia_learn_test_run';
+var TEST_VOICES={jp:{N:'sage',F:'coral',M:'ash'},en:{N:'alloy',F:'shimmer',M:'onyx'}};
+var testResults=[],testSheetOk=false,testMeta=null,testMetaErr='',testMetaLoading=false,testRun=null,_testIv=null,_testAudioEl=null,testClips={};
+Object.assign(UI.en,{test:'Test',testrule:'Every Friday, the last 2 hours are test time. Take the mock test exactly like the real exam: each section is timed, the listening is played only once, and you cannot go back to a finished section. It is scored and judged pass / fail.',testladder:'Level path',testpromote:'Pass {n} times in a row to move to the next level',teststreak:'passes in a row at this level',testnext:'Next test',testwindow:'Open',testclosed:'The test can be started only during the test window.',testnone:'No new test at this level yet. It will be prepared before the next test day.',teststart:'Start the test ▶',testconfirm:'Start now? The timer starts immediately and cannot be paused. Do not use dictionaries, translators or AI during the test.',testprep:'Preparing audio…',testsection:'Section',testleft:'Time left',testanswered:'answered',testfinishsec:'Finish this section',testfinishconfirm:'Finish this section? You cannot come back to it.',testnextsec:'Next section',testbegin:'Begin ▶',testgrading:'Scoring…',testpass:'PASS',testfail:'FAIL',testtotal:'Total',testpassline:'Pass mark',testmin:'minimum',testreview:'Review',testhist:'Test history',testresume:'Resume ▶',testplaying:'Listening…',testanswernow:'Choose your answer',testscript:'Script',testyour:'Your answer',testright:'Correct',testtimeup:'Time is up for this section.',testgradefail:'Could not score yet. Your answers are kept on this device.',testlocked:'Test in progress',testdone:'Close',testlevelup:'Level up for next test:',testnoanswer:'(no answer)',testinstrlisten:'The audio plays automatically and only once.'});
+Object.assign(UI.ja,{test:'テスト',testrule:'毎週金曜日の最後の2時間はテストの時間です。本番どおりに受けてください。区分ごとに時間が決まっていて、リスニングは1回だけ流れ、終えた区分には戻れません。採点して合格／不合格を判定します。',testladder:'レベルの道のり',testpromote:'同じレベルで{n}回続けて合格すると次のレベルへ',teststreak:'このレベルで連続合格',testnext:'次のテスト',testwindow:'受験できる時間',testclosed:'テストは受験できる時間内にだけ開始できます。',testnone:'このレベルの新しいテストはまだありません。次のテスト日までに用意します。',teststart:'テストを始める ▶',testconfirm:'始めますか？ 時間はすぐに計り始め、止められません。テスト中は辞書・翻訳・AIを使わないでください。',testprep:'音声を準備しています…',testsection:'区分',testleft:'残り時間',testanswered:'回答済み',testfinishsec:'この区分を終える',testfinishconfirm:'この区分を終えますか？ 戻れません。',testnextsec:'次の区分',testbegin:'始める ▶',testgrading:'採点しています…',testpass:'合格',testfail:'不合格',testtotal:'合計',testpassline:'合格点',testmin:'基準点',testreview:'答え合わせ',testhist:'テストの記録',testresume:'再開 ▶',testplaying:'再生中…',testanswernow:'答えを選んでください',testscript:'スクリプト',testyour:'あなたの答え',testright:'正解',testtimeup:'この区分の時間が終わりました。',testgradefail:'まだ採点できません。回答はこの端末に保存されています。',testlocked:'テスト中',testdone:'閉じる',testlevelup:'次回のテストのレベル:',testnoanswer:'(無回答)',testinstrlisten:'音声は自動で1回だけ流れます。'});
+function testApiUrl(p){return VOICE_TOKEN_URL.replace(/\/token$/,p);}
+async function testCall(p,body){
+  var call=function(){return fetch(testApiUrl(p),{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+accessToken},body:JSON.stringify(body||{})});};
+  var r=await call();if(r.status===401){await refreshAccessToken();r=await call();}
+  var d={};try{d=await r.json();}catch(e){}
+  if(!r.ok){var err=new Error(d.error||('HTTP '+r.status));err.status=r.status;err.data=d;throw err;}
+  return d;
+}
+async function ensureTestSheet(){
+  if(testSheetOk)return;var id=getSheetId();
+  var meta=await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+id+'?fields=sheets.properties.title');
+  var has=(meta.sheets||[]).some(function(s){return s.properties&&s.properties.title===TEST_SHEET.title;});
+  if(!has){
+    await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+id+':batchUpdate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requests:[{addSheet:{properties:{title:TEST_SHEET.title,gridProperties:{frozenRowCount:1}}}}]})});
+    await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+id+'/values/'+encodeURIComponent(TEST_SHEET.title+'!A1')+'?valueInputOption=RAW',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({values:[TEST_SHEET.headers]})});
+  }
+  testSheetOk=true;
+}
+async function loadTestResults(){
+  try{var v=await apiFetch('https://sheets.googleapis.com/v4/spreadsheets/'+getSheetId()+'/values/'+encodeURIComponent(TEST_SHEET.title+'!A2:'+colLetter(TEST_FIELDS.length)+'5000'));testResults=parseRows(v.values,TEST_FIELDS);testResults.forEach(function(r){r.course=(r.course||'jp').toLowerCase();});testSheetOk=true;}
+  catch(e){testResults=[];testSheetOk=false;}
+}
+function testLevelKey(email,c){return 'testlevel:'+(email||currentUser.email).toLowerCase()+':'+(c||course);}
+function testLevel(email,c){c=c||course;var v=String(sheetSettings[testLevelKey(email,c)]||'').toUpperCase();return TEST_LADDER[c].indexOf(v)!==-1?v:TEST_DEFAULT[c];}
+function testPromoteAfter(){var n=parseInt(sheetSettings.test_promote_after,10);return n>0?n:2;}
+function myTestResults(email,c){email=(email||currentUser.email).toLowerCase();c=c||course;return testResults.filter(function(r){return (r.email||'').toLowerCase()===email&&r.course===c;}).sort(function(a,b){return a.at<b.at?1:-1;});}
+function passStreak(email,c,lv){var n=0,rs=myTestResults(email,c);for(var i=0;i<rs.length;i++){if(String(rs[i].level).toUpperCase()!==lv)break;if(rs[i].pass!=='1')break;n++;}return n;}
+function nextTestForm(email,c){
+  c=c||course;if(!testMeta||!testMeta.tests)return null;var lv=testLevel(email,c);
+  var taken={};myTestResults(email,c).forEach(function(r){taken[r.test]=1;});
+  var forms=testMeta.tests.filter(function(t){return t.course===c&&(c==='en'?t.scoring==='toeic':t.level===lv);});
+  for(var i=0;i<forms.length;i++)if(!taken[forms[i].id])return forms[i];
+  return null;
+}
+async function loadTestMeta(){
+  if(testMetaLoading)return;testMetaLoading=true;
+  try{testMeta=await testCall('/test/list',{});testMetaErr='';}catch(e){testMetaErr=e.message;}
+  testMetaLoading=false;if(tab==='test'&&!testRun)render();
+}
+function testFmtQ(s){return escapeHtml(s).replace(/【([^】]*)】/g,'<u style="text-decoration-thickness:2px;text-underline-offset:4px">$1</u>').replace(/\n/g,'<br>');}
+function testLabel(sec,i){var l=(sec&&sec.optLabels)||'ABCD';return l.charAt(i)||String(i+1);}
+// ---------- home ----------
+function renderTestHome(){
+  if(!testMeta&&!testMetaErr)loadTestMeta();
+  var h='<h2>'+T('test')+'</h2>'+courseSwitch();
+  h+='<div class="card"><p style="margin-top:0">'+T('testrule')+'</p>';
+  var lv=testLevel(),ladder=TEST_LADDER[course];
+  h+='<div class="cfgrow"><b>'+T('testladder')+'</b><span style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+ladder.map(function(x){var i=ladder.indexOf(x),cur=ladder.indexOf(lv);return '<span class="badge '+(x===lv?'b-info':(i<cur?'b-ok':''))+'">'+(course==='en'?'TOEIC '+x:x)+(i<cur?' ✓':'')+'</span>';}).join(' → ')+'</span></div>';
+  h+='<div class="cfgrow"><b>'+T('teststreak')+'</b>'+passStreak(currentUser.email,course,lv)+' / '+testPromoteAfter()+' <span class="hint">('+T('testpromote').replace('{n}',testPromoteAfter())+')</span></div>';
+  if(testMetaErr)h+='<p class="hint">'+escapeHtml(testMetaErr)+' <button class="btn ghost small" onclick="testMetaErr=\'\';testMeta=null;render()">'+T('retry')+'</button></p>';
+  else if(!testMeta)h+='<div class="spinner"></div>';
+  else{
+    var w=testMeta.window||{};var f=nextTestForm();
+    h+='<div class="cfgrow"><b>'+T('testwindow')+'</b>'+escapeHtml(w.label||'')+' '+(w.open?'<span class="badge b-ok">OPEN</span>':'<span class="badge">CLOSED</span>')+'</div>';
+    if(f){
+      h+='<div class="cfgrow"><b>'+T('testnext')+'</b>'+escapeHtml(f.title)+' <span class="hint">('+f.nq+' Q · '+f.minutes+' min: '+f.sections.map(function(s){return escapeHtml(s.title)+' '+s.minutes+'′';}).join(' / ')+')</span></div>';
+      h+='<div class="acts" style="margin-top:12px"><button class="btn" '+(w.open?'':'disabled')+' onclick="confirmStartTest(\''+f.id+'\')">'+T('teststart')+'</button></div>';
+      if(!w.open)h+='<p class="hint">'+T('testclosed')+'</p>';
+    }else h+='<p class="hint">'+T('testnone')+'</p>';
+  }
+  h+='</div>';
+  var rs=myTestResults();
+  h+='<div class="card"><h3 style="margin-top:0">'+T('testhist')+'</h3>';
+  if(!rs.length)h+='<p class="hint">—</p>';
+  else{h+='<table class="tbl"><tr><th>'+T('time')+'</th><th>'+T('test')+'</th><th>'+T('testtotal')+'</th><th></th></tr>';rs.forEach(function(r){var g=[];try{g=JSON.parse(r.scores);}catch(e){}h+='<tr><td>'+escapeHtml(String(r.at).slice(0,16).replace('T',' '))+'</td><td>'+escapeHtml(r.test)+' <span class="hint">'+escapeHtml(course==='en'?'目標 '+r.level:r.level)+'</span></td><td>'+escapeHtml(r.total)+' <span class="hint">'+g.map(function(x){return escapeHtml(String(x.title).split(' / ').pop())+' '+x.score;}).join(' · ')+'</span></td><td>'+(r.pass==='1'?'<span class="badge b-ok">'+T('testpass')+'</span>':'<span class="badge b-bad">'+T('testfail')+'</span>')+'</td></tr>';});h+='</table>';}
+  return h+'</div>';
+}
+function confirmStartTest(id){
+  openModal('<h3 style="margin-top:0">'+T('teststart')+'</h3><p>'+T('testconfirm')+'</p><div class="acts"><button class="btn" onclick="closeModal();beginTest(\''+id+'\')">'+T('teststart')+'</button> <button class="btn ghost" onclick="closeModal()">'+T('quit')+'</button></div>');
+}
+// ---------- run ----------
+function saveTestRun(){try{if(testRun)localStorage.setItem(TEST_RUN_KEY,JSON.stringify(testRun));else localStorage.removeItem(TEST_RUN_KEY);}catch(e){}}
+function restoreTestRun(){try{var r=JSON.parse(localStorage.getItem(TEST_RUN_KEY)||'null');if(r&&r.email===currentUser.email){testRun=r;if(r.status==='running'||r.status==='between')r.needResume=true;course=r.course;tab='test';}}catch(e){}}
+function curSection(){return testRun&&testRun.test.sections[testRun.si];}
+function sectionQids(sec){var ids=[];sec.groups.forEach(function(g){(g.questions||[]).forEach(function(q){ids.push(q.id);});(g.sets||[]).forEach(function(st){st.questions.forEach(function(q){ids.push(q.id);});});});return ids;}
+function testSpeed(){return testRun&&testRun.course==='jp'?0.9:1;}
+function clipsOf(sec){ // ordered audio clips for a listening section: [{key,text,voice}]
+  var V=TEST_VOICES[testRun.course]||TEST_VOICES.en,out=[];
+  sec.groups.forEach(function(g){if(g.instr)out.push({text:g.instr,voice:V.N});g.sets.forEach(function(st){var last='N';st.script.forEach(function(l){out.push({text:l.text,voice:V[l.sp]||V.N});last=l.sp;});st.questions.forEach(function(q){if(q.q)out.push({text:q.q,voice:V.N});if(q.spoken){var ov=last==='F'?V.M:V.F;q.options.forEach(function(o,i){out.push({text:optSpeech(sec,i,o),voice:ov});});}});});});
+  return out;
+}
+function optSpeech(sec,i,o){return (testRun.course==='jp'?(i+1)+'. ':'('+testLabel(sec,i)+') ')+o;}
+function clipKey(c){return c.voice+'|'+c.text;}
+async function fetchClip(c){
+  var k=clipKey(c);if(testClips[k])return testClips[k];
+  var call=function(){return fetch(ttsUrl(),{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+accessToken},body:JSON.stringify({text:c.text,voice:c.voice,speed:testSpeed()})});};
+  var r=await call();if(r.status===401){await refreshAccessToken();r=await call();}
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  var b=await r.blob();if(!b||!b.size)throw new Error('empty audio');testClips[k]=URL.createObjectURL(b);return testClips[k];
+}
+async function prefetchClips(clips,onProgress){
+  var todo=clips.filter(function(c){return !testClips[clipKey(c)];}),done=0,i=0,fail=null;
+  async function worker(){while(i<todo.length&&!fail){var c=todo[i++];var ok=false;for(var a=0;a<3&&!ok;a++){try{await fetchClip(c);ok=true;}catch(e){if(a===2)fail=e;}}done++;onProgress(done,todo.length);}}
+  await Promise.all([worker(),worker(),worker(),worker(),worker(),worker()]);
+  if(fail)throw fail;
+}
+function testProgressHtml(msg,d,n){return '<div class="card" style="text-align:center"><p>'+msg+'</p><div class="spinner"></div>'+(n?'<p class="hint">'+d+' / '+n+'</p>':'')+'</div>';}
+async function beginTest(id){
+  var m=document.getElementById('main');m.innerHTML=testProgressHtml(T('testprep'));
+  var d;try{d=await testCall('/test/start',{id:id});}catch(e){showToast(e.message);render();return;}
+  testRun={id:id,email:currentUser.email,name:currentUser.name,course:course,level:testLevel(),test:d.test,si:0,status:'between',answers:{},startedAt:Date.now(),endsAt:0,aptr:{g:0,s:0,instr:false}};
+  saveTestRun();
+  await prepareAndStartSection();
+}
+async function prepareAndStartSection(){ // called from a click (needed for audio autoplay)
+  var sec=curSection();if(!sec)return;
+  if(sec.audio){
+    var m=document.getElementById('main');
+    try{await prefetchClips(clipsOf(sec),function(d,n){m.innerHTML=testProgressHtml(T('testprep'),d,n);});}
+    catch(e){m.innerHTML='<div class="card"><p>'+escapeHtml(T('ttsfail')+' '+e.message)+'</p><button class="btn" onclick="prepareAndStartSection()">'+T('retry')+'</button></div>';return;}
+    if(!_testAudioEl)_testAudioEl=new Audio();
+    try{_testAudioEl.src='data:audio/mpeg;base64,';_testAudioEl.play().catch(function(){});}catch(e){} // unlock audio on this gesture
+  }
+  if(testRun.status!=='running'){testRun.status='running';testRun.endsAt=Date.now()+sec.minutes*60000;}
+  testRun.needResume=false;saveTestRun();
+  startTestTimer();render();window.scrollTo(0,0);
+  if(sec.audio)runListening(testRun.runToken=Math.random());
+}
+function startTestTimer(){clearInterval(_testIv);_testIv=setInterval(testTick,1000);}
+function testTick(){
+  if(!testRun||testRun.status!=='running'){clearInterval(_testIv);return;}
+  var left=Math.max(0,Math.round((testRun.endsAt-Date.now())/1000));
+  var el=document.getElementById('test-timer');if(el){el.textContent=fmtMin(left);el.style.color=left<=60?'var(--bad)':'';}
+  if(left<=0){showToast(T('testtimeup'));endSection();}
+}
+function testPick(qid,i){
+  if(!testRun||testRun.status!=='running')return;testRun.answers[qid]=i;saveTestRun();
+  document.querySelectorAll('[data-q="'+qid+'"]').forEach(function(b){b.classList.toggle('picked',parseInt(b.getAttribute('data-i'),10)===i);});
+  var c=document.getElementById('test-count');if(c){var ids=sectionQids(curSection());c.textContent=ids.filter(function(x){return testRun.answers[x]!==undefined;}).length+' / '+ids.length;}
+}
+function optButtons(sec,q,hideText){
+  return '<div class="opts" style="'+(hideText?'grid-template-columns:repeat('+q.options.length+',minmax(0,90px))':'')+'">'+q.options.map(function(o,i){var on=testRun.answers[q.id]===i;return '<button class="opt'+(on?' picked':'')+'" data-q="'+q.id+'" data-i="'+i+'" onclick="testPick(\''+q.id+'\','+i+')"><span class="k">'+testLabel(sec,i)+'</span>'+(hideText?'':'<span>'+testFmtQ(o)+'</span>')+'</button>';}).join('')+'</div>';
+}
+function testHeader(sec){
+  var ids=sectionQids(sec),n=ids.filter(function(x){return testRun.answers[x]!==undefined;}).length,left=Math.max(0,Math.round((testRun.endsAt-Date.now())/1000));
+  return '<div class="card" style="position:sticky;top:0;z-index:5;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><b>'+escapeHtml(testRun.test.title)+'</b><span class="badge b-info">'+T('testsection')+' '+(testRun.si+1)+'/'+testRun.test.sections.length+' · '+escapeHtml(sec.title)+'</span><span style="margin-left:auto">'+T('testleft')+' <b id="test-timer" class="mono" style="font-size:1.15rem">'+fmtMin(left)+'</b></span><span class="hint">'+T('testanswered')+' <span id="test-count">'+n+' / '+ids.length+'</span></span></div>';
+}
+function renderTestRun(){
+  var r=testRun,sec=curSection();
+  if(r.status==='grading')return testProgressHtml(T('testgrading'));
+  if(r.status==='graded'||r.status==='gradefail')return renderTestResult();
+  if(r.needResume||r.status==='between'){
+    var title=r.needResume&&r.status==='running'?T('testresume'):T('testbegin');
+    return '<div class="card" style="text-align:center"><h3>'+escapeHtml(r.test.title)+'</h3><p><b>'+T('testsection')+' '+(r.si+1)+'/'+r.test.sections.length+': '+escapeHtml(sec.title)+'</b> ('+sec.minutes+' min)</p>'+(sec.audio?'<p class="hint">'+T('testinstrlisten')+'</p>':'')+'<button class="btn" onclick="prepareAndStartSection()">'+title+'</button></div>';
+  }
+  var h=testHeader(sec);
+  if(sec.audio){
+    var p=r.aptr,g=sec.groups[p.g],st=g&&g.sets[p.s];
+    h+='<div class="card"><p class="hint" id="test-audio-status">'+(r.playing?'🔊 '+T('testplaying'):T('testanswernow'))+'</p>';
+    if(g)h+='<p><b>'+testFmtQ(g.instr)+'</b></p>';
+    if(st){
+      if(st.situation)h+='<div class="passage">'+testFmtQ(st.situation)+'</div>';
+      st.questions.forEach(function(q){h+='<div style="margin:14px 0"><p><b>'+q.no+'.</b> '+(q.spoken||r.course==='jp'?'':testFmtQ(q.q))+'</p>'+optButtons(sec,q,q.spoken)+'</div>';});
+    }
+    h+='</div>';
+  }else{
+    sec.groups.forEach(function(g){
+      h+='<div class="card"><p><b>'+testFmtQ(g.instr)+'</b></p>';
+      if(g.passage)h+='<div class="passage">'+testFmtQ(g.passage)+'</div>';
+      g.questions.forEach(function(q){h+='<div style="margin:16px 0"><p><b>'+q.no+'.</b> '+testFmtQ(q.q)+'</p>'+optButtons(sec,q,false)+'</div>';});
+      h+='</div>';
+    });
+    h+='<div class="acts" style="justify-content:center;margin:18px 0 40px"><button class="btn" onclick="if(confirm(T(\'testfinishconfirm\')))endSection()">'+T('testfinishsec')+'</button></div>';
+  }
+  return h;
+}
+function sleepMs(ms){return new Promise(function(res){setTimeout(res,ms);});}
+function playClip(c){return new Promise(function(res){var url=testClips[clipKey(c)];if(!url){res();return;}var a=_testAudioEl||(_testAudioEl=new Audio());a.onended=function(){res();};a.onerror=function(){res();};a.src=url;a.play().catch(function(){res();});});}
+function setAudioStatus(playing){if(!testRun)return;testRun.playing=playing;var el=document.getElementById('test-audio-status');if(el)el.textContent=playing?'🔊 '+T('testplaying'):T('testanswernow');}
+async function runListening(token){
+  var sec=curSection(),V=TEST_VOICES[testRun.course]||TEST_VOICES.en;
+  var alive=function(){return testRun&&testRun.runToken===token&&testRun.status==='running'&&curSection()===sec;};
+  while(alive()){
+    var p=testRun.aptr,g=sec.groups[p.g];
+    if(!g){endSection();return;}
+    var st=g.sets[p.s];
+    if(!st){testRun.aptr={g:p.g+1,s:0,instr:false};saveTestRun();continue;}
+    render();
+    setAudioStatus(true);
+    if(!p.instr&&g.instr){await playClip({text:g.instr,voice:V.N});if(!alive())return;testRun.aptr.instr=true;saveTestRun();await sleepMs(1200);}
+    var last='N';
+    for(var i=0;i<st.script.length;i++){var l=st.script[i];await playClip({text:l.text,voice:V[l.sp]||V.N});last=l.sp;if(!alive())return;await sleepMs(350);}
+    var pause=sec.pause&&typeof sec.pause==='object'?(sec.pause[g.part]||8):(sec.pause||8);
+    for(var j=0;j<st.questions.length;j++){
+      var q=st.questions[j];
+      await sleepMs(700);
+      if(q.q){await playClip({text:q.q,voice:V.N});if(!alive())return;}
+      if(q.spoken){var ov=last==='F'?V.M:V.F;for(var k=0;k<q.options.length;k++){await playClip({text:optSpeech(sec,k,q.options[k]),voice:ov});if(!alive())return;await sleepMs(500);}}
+      setAudioStatus(false);
+      await sleepMs(pause*1000);if(!alive())return;
+      if(j<st.questions.length-1)setAudioStatus(true);
+    }
+    testRun.aptr={g:p.g,s:p.s+1,instr:true};saveTestRun();
+  }
+}
+function endSection(){
+  if(!testRun||testRun.status!=='running')return;
+  clearInterval(_testIv);testRun.runToken=null;try{if(_testAudioEl)_testAudioEl.pause();}catch(e){}
+  if(testRun.si+1<testRun.test.sections.length){testRun.si++;testRun.status='between';testRun.aptr={g:0,s:0,instr:false};saveTestRun();render();window.scrollTo(0,0);}
+  else submitTest();
+}
+async function submitTest(){
+  testRun.status='grading';testRun.finishedAt=testRun.finishedAt||Date.now();saveTestRun();render();
+  var res;
+  try{res=await testCall('/test/grade',{id:testRun.id,answers:testRun.answers,target:testRun.course==='en'?testRun.level:''});}
+  catch(e){testRun.status='gradefail';testRun.err=e.message;saveTestRun();render();return;}
+  testRun.result=res;
+  var nq=res.review.length,correct=res.review.filter(function(x){return x.ok;}).length;
+  var row={at:nowISO(),email:testRun.email,name:testRun.name,course:testRun.course,test:testRun.id,level:testRun.level,scores:JSON.stringify(res.groups.map(function(g){return {id:g.id,title:g.title,score:g.score,max:g.max,min:g.min,correct:g.correct,n:g.n};})),total:String(res.total),pass:res.pass?'1':'0',correct:String(correct),nq:String(nq),sec:String(Math.round((testRun.finishedAt-testRun.startedAt)/1000)),answers:JSON.stringify(testRun.answers)};
+  try{await ensureTestSheet();await appendRow(TEST_SHEET.title,row,TEST_FIELDS);testResults.push(row);testRun.saved=true;}
+  catch(e){testRun.saved=false;testRun.pendingRow=row;showToast(T('savefail')+' '+String(e.message).slice(0,80));}
+  // promotion: N passes in a row at this level -> next rung
+  if(testRun.saved&&res.pass){var c=testRun.course,lv=testRun.level,lad=TEST_LADDER[c],i=lad.indexOf(lv);
+    if(passStreak(testRun.email,c,lv)>=testPromoteAfter()&&i>=0&&i+1<lad.length){try{await saveSetting(testLevelKey(testRun.email,c),lad[i+1]);testRun.promotedTo=lad[i+1];}catch(e){}}}
+  testRun.status='graded';saveTestRun();render();window.scrollTo(0,0);
+}
+async function retryTestSave(){if(!testRun||!testRun.pendingRow)return;try{await ensureTestSheet();await appendRow(TEST_SHEET.title,testRun.pendingRow,TEST_FIELDS);testResults.push(testRun.pendingRow);testRun.saved=true;testRun.pendingRow=null;saveTestRun();render();}catch(e){showToast(e.message);}}
+function closeTest(){if(testRun&&testRun.pendingRow&&!confirm(T('unsaved')))return;testRun=null;saveTestRun();testMeta=null;render();}
+function renderTestResult(){
+  var r=testRun,res=r.result;
+  if(r.status==='gradefail')return '<div class="card"><p>'+T('testgradefail')+'</p><p class="hint">'+escapeHtml(r.err||'')+'</p><button class="btn" onclick="submitTest()">'+T('retry')+'</button></div>';
+  var h='<div class="card" style="text-align:center"><h3 style="margin-top:0">'+escapeHtml(r.test.title)+'</h3><div style="font-size:2.2rem;font-weight:900;color:'+(res.pass?'var(--ok)':'var(--bad)')+'">'+(res.pass?T('testpass'):T('testfail'))+'</div>';
+  h+='<p style="font-size:1.2rem"><b>'+T('testtotal')+' '+res.total+'</b> / '+res.max+' · '+T('testpassline')+' '+res.passTotal+(r.course==='en'?' (目標)':'')+'</p>';
+  h+='<table class="tbl" style="margin:0 auto"><tr><th></th><th>Score</th><th>'+T('testmin')+'</th><th>'+T('pct')+'</th></tr>'+res.groups.map(function(g){return '<tr><td>'+escapeHtml(g.title)+'</td><td><b>'+g.score+'</b> / '+g.max+'</td><td>'+(g.min?g.min+(g.ok?' ✓':' ✗'):'—')+'</td><td>'+g.correct+' / '+g.n+'</td></tr>';}).join('')+'</table>';
+  h+='<p class="hint">'+escapeHtml(res.note||'')+'</p>';
+  if(r.promotedTo)h+='<p><span class="badge b-ok">'+T('testlevelup')+' '+(r.course==='en'?'TOEIC '+r.promotedTo:r.promotedTo)+'</span></p>';
+  if(r.pendingRow)h+='<p>'+T('unsaved')+' <button class="btn small" onclick="retryTestSave()">'+T('retry')+'</button></p>';
+  h+='<div class="acts" style="justify-content:center"><button class="btn" onclick="closeTest()">'+T('testdone')+'</button></div></div>';
+  var rv={};res.review.forEach(function(x){rv[x.id]=x;});
+  h+='<h3>'+T('testreview')+'</h3>';
+  r.test.sections.forEach(function(sec){
+    h+='<div class="card"><h4 style="margin-top:0">'+escapeHtml(sec.title)+'</h4>';
+    var qrow=function(q,showText){var x=rv[q.id]||{};var mine=x.choice>=0?testLabel(sec,x.choice)+'. '+q.options[x.choice]:T('testnoanswer');return '<div style="margin:10px 0;padding:8px 10px;border-left:4px solid '+(x.ok?'var(--ok)':'var(--bad)')+'"><b>'+q.no+'.</b> '+(showText?testFmtQ(q.q):'')+'<br>'+T('testyour')+': '+testFmtQ(mine)+(x.ok?' ✓':'<br>'+T('testright')+': <b>'+testLabel(sec,x.ans)+'. '+testFmtQ(q.options[x.ans]||'')+'</b>')+(x.exp?'<br><span class="hint">'+escapeHtml(x.exp)+'</span>':'')+'</div>';};
+    sec.groups.forEach(function(g){
+      if(g.sets)g.sets.forEach(function(st){h+='<details style="margin:8px 0"><summary>'+T('testscript')+' (Q'+st.questions.map(function(q){return q.no;}).join(', ')+')</summary><div class="note">'+st.script.map(function(l){return '<b>'+l.sp+':</b> '+escapeHtml(l.text);}).join('<br>')+'</div></details>';st.questions.forEach(function(q){h+=qrow(q,!q.spoken||!!q.q);});});
+      else{if(g.passage)h+='<details style="margin:8px 0"><summary>'+escapeHtml(String(g.instr).slice(0,60))+'</summary><div class="note">'+testFmtQ(g.passage)+'</div></details>';g.questions.forEach(function(q){h+=qrow(q,true);});}
+    });
+    h+='</div>';
+  });
+  return h;
+}
+function renderTest(){return testRun?renderTestRun():renderTestHome();}
+function renderTestAdmin(){
+  var h='<div class="card"><h3 style="margin-top:0">週末テスト（金曜・最後の2時間）</h3><p class="hint">問題と正解はWorkerの中だけにあり、受験できる時間内にだけ配信・採点します（公開リポジトリには置かない）。追加は worker/tests_src → tools/build_tests.py → Workerデプロイ。</p>';
+  if(!testMeta&&!testMetaErr)loadTestMeta();
+  if(testMeta){h+='<div class="cfgrow"><b>受験できる時間</b>'+escapeHtml(testMeta.window.label)+(testMeta.window.open?' (いま受験可)':'')+'</div>';
+    h+='<div class="cfgrow"><b>テスト</b>'+testMeta.tests.map(function(t){return escapeHtml(t.id)+' ('+t.nq+'問・'+t.minutes+'分)';}).join(' ／ ')+'</div>';}
+  else if(testMetaErr)h+='<p class="hint">'+escapeHtml(testMetaErr)+'</p>';
+  h+='<div class="cfgrow"><b>連続合格で昇格</b><input id="tp-n" type="number" min="1" max="5" value="'+testPromoteAfter()+'" style="width:60px"> 回 <button class="btn ghost small" onclick="saveSetting(\'test_promote_after\',document.getElementById(\'tp-n\').value).then(function(){showToast(\'保存しました\');render();})">保存</button></div>';
+  var ls=allLearners();
+  h+='<div class="cfgrow"><b>テストのレベル</b>'+ls.map(function(l){return Object.keys(COURSES).filter(function(c){return l.courses[c];}).map(function(c){var cur=testLevel(l.email,c);return escapeHtml(l.name)+' '+c+' <select onchange="saveSetting(testLevelKey(\''+escapeAttr(l.email)+'\',\''+c+'\'),this.value).then(function(){showToast(\'保存しました\');})">'+TEST_LADDER[c].map(function(x){return '<option'+(x===cur?' selected':'')+'>'+x+'</option>';}).join('')+'</select>';}).join(' ');}).join(' ／ ')+'<br><span class="hint">en は TOEIC の目標点（合格ライン）。jp は JLPT レベル。</span></div>';
+  h+='<div class="cfgrow"><b>結果</b>「テスト結果」シート '+testResults.length+'件</div></div>';
+  return h;
+}
 function nowISO(){var d=new Date();return isoOf(d)+'T'+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());}
-window.addEventListener('beforeunload',function(e){if(pendingLogs.length||pendingVoice.length||(voice&&voice.status==='live')){e.preventDefault();e.returnValue='';}});
+window.addEventListener('beforeunload',function(e){if(pendingLogs.length||pendingVoice.length||(voice&&voice.status==='live')||(testRun&&['running','grading'].indexOf(testRun.status)!==-1)){e.preventDefault();e.returnValue='';}});
 </script>
 </body>
 </html>
