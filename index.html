@@ -192,6 +192,9 @@ footer{max-width:1140px;margin:0 auto;padding:18px 22px;color:var(--muted);font-
 .qtop .prog i{display:block;height:100%;background:var(--accent)}
 .qtext{font-size:1.35rem;font-weight:700;line-height:1.6;margin:6px 0 18px;font-family:"Noto Sans JP",sans-serif}
 .qtext.small{font-size:1.05rem;font-weight:500}
+.qread{display:flex;align-items:center;gap:10px;margin:-10px 0 16px;color:var(--muted,#666);font-size:1.05rem}
+.qread .ipa{font-family:"Segoe UI","Noto Sans","DejaVu Sans","Lucida Sans Unicode",sans-serif;letter-spacing:.02em}
+.qread button{padding:2px 10px}
 .opts{display:grid;gap:10px}
 .opt{display:flex;align-items:center;gap:12px;text-align:left;background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:12px 14px;font:inherit;font-size:1.05rem;cursor:pointer;color:var(--ink)}
 .opt:hover{border-color:var(--accent)}
@@ -1527,7 +1530,7 @@ function renderQuiz(){
   if(it.choice===null){quiz.qStart=Date.now();clearInterval(_timerIv);_timerIv=setInterval(function(){var el=document.getElementById('timer');if(el)el.textContent=((Date.now()-quiz.qStart)/1000).toFixed(0)+'s';},500);}
   var h='<div class="qcard"><div class="qtop"><span class="badge b-acc">'+escapeHtml((quiz.cat==='set'||quiz.cat==='listen'?T('set')+' · ':'')+(q.cat==='listening'?T('listening'):catLabel(q.cat)))+'</span><span>'+(quiz.i+1)+' / '+n+'</span><div class="prog"><i style="width:'+Math.round(100*quiz.i/n)+'%"></i></div><span class="timer" id="timer">'+(it.sec!==null?it.sec+'s':'0s')+'</span></div>';
   if(q.cat==='listening'){h+='<div class="qtext small" style="text-align:center"><button class="btn" id="play-btn" onclick="playItem()">🔊 '+T(it.plays?'playagain':'play')+'</button><div class="hint" style="margin-top:6px">'+T('listenhint')+'</div></div><div class="qtext'+(q.q.length>40?' small':'')+'">'+escapeHtml(q.q)+'</div><div class="opts">';}
-  else h+='<div class="qtext'+(q.q.length>40?' small':'')+'">'+escapeHtml(q.q)+'</div><div class="opts">';
+  else{h+='<div class="qtext'+(q.q.length>40?' small':'')+'">'+escapeHtml(q.q)+'</div>';if(isEnWord(q))h+=renderReading(wordOf(q));h+='<div class="opts">';}
   it.opts.forEach(function(o,k){var cls='opt';if(it.choice!==null){if(o.letter===q.ans.toUpperCase())cls+=' right';else if(o.letter===it.choice)cls+=' wrong';}
     h+='<button class="'+cls+'" '+(it.choice!==null?'disabled':'')+' onclick="answer(\''+o.letter+'\')"><span class="k">'+(k+1)+'</span><span>'+escapeHtml(o.text)+'</span></button>';});
   h+='</div>';
@@ -1780,6 +1783,21 @@ function renderVoice(){
     ss.slice(0,10).forEach(function(a){var s=voiceSessionSummary(a);h+='<tr><td class="mono">'+escapeHtml((s.at||'').slice(0,16).replace('T',' '))+'</td><td>'+T(s.mode)+'</td><td class="c">'+(s.score?s.score.score:'–')+'</td><td class="c">'+s.turns+'</td><td class="c mono">'+fmtMin(s.sec)+'</td></tr>';});
     h+='</table></div>';}
   return h;
+}
+// ==================== 英単語の読み(発音記号+🔊) ====================
+// packs/en_ipa.json = tools/build_ipa.py で作る {語: "/IPA/"}。辞書に無い語は🔊だけ出す
+var enIpa=null,enIpaP=null;
+function isEnWord(q){return course==='en'&&q.cat==='vocab'&&/^"[^"]+" の意味は/.test(String(q.q||''));}
+function loadEnIpa(){if(!enIpaP)enIpaP=fetch('packs/en_ipa.json').then(function(r){return r.ok?r.json():{};}).catch(function(){return {};}).then(function(d){enIpa=d||{};fillReading();});return enIpaP;}
+function ipaOf(w){if(!enIpa)return null;var k=String(w).toLowerCase().trim();if(enIpa[k])return enIpa[k];
+  var t=k.match(/[a-z][a-z'\-]*/g)||[];if(!t.length)return null;var p=t.map(function(x){var v=enIpa[x];return v?v.replace(/^\/|\/$/g,''):null;});return p.every(Boolean)?'/'+p.join(' ')+'/':null;}
+function renderReading(w){loadEnIpa();var ipa=ipaOf(w);return '<div class="qread" id="q-read" data-w="'+escapeAttr(w)+'"><span class="ipa" id="q-ipa">'+escapeHtml(ipa||'')+'</span><button class="btn ghost small" id="say-btn" data-w="'+escapeAttr(w)+'" onclick="sayWord(this.dataset.w)" title="'+escapeAttr(T('play'))+'">🔊</button></div>';}
+function fillReading(){var el=document.getElementById('q-read'),sp=document.getElementById('q-ipa');if(el&&sp&&!sp.textContent)sp.textContent=ipaOf(el.dataset.w)||'';}
+async function sayWord(w){ // Worker /tts(講師の声・キャッシュあり)→ だめならブラウザの読み上げ
+  var btn=document.getElementById('say-btn');if(btn)btn.disabled=true;
+  try{var url=await fetchTts(w);if(_audio){try{_audio.pause();}catch(e){}}_audio=new Audio(url);await _audio.play();}
+  catch(e){try{var u=new SpeechSynthesisUtterance(w);u.lang='en-US';u.rate=0.9;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e2){showToast(T('ttsfail'));}}
+  finally{if(btn)btn.disabled=false;}
 }
 function wordOf(q){ // 表示用: 問題文から対象語を取り出す(「」/"" で囲まれていればその中、無ければ問題文)
   var m=String(q.q||'').match(/[「"“]([^」"”]+)[」"”]/);if(m)return m[1];var s=String(q.q||'');return s.length>24?s.slice(0,24)+'…':s;

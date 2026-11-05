@@ -43,6 +43,7 @@ Kartik Dhar さん作 [Hanasu](https://github.com/KartikDhar09/hanasu) の語彙
 - `packs/jp_vocab_n3n2n1.json` … JLPT語彙 N3 2,101 / N2 1,897 / N1 2,684問。元データ [open-anki-jlpt-decks](https://github.com/jamsinclair/open-anki-jlpt-decks) (MIT)
 - `packs/jp_kanji_n3n2n1.json` … 漢字の意味・音読み N3 367 / N2 367 / N1 1,232問。元データ [kanji-data](https://github.com/davidluzgouveia/kanji-data) (MIT)
 - `packs/en_cefr_b2c1.json` … 英単語 B2 2,360 / C1 803問。見出し語 [CEFR-J Vocabulary Profile / Octanove Vocabulary Profile](https://github.com/openlanguageprofiles/olp-en-cefrj) (CC BY-SA 4.0)、訳語 [EJDict-hand](https://github.com/kujirahand/EJDict) (パブリックドメイン)
+- `packs/en_ipa.json` … 英単語クイズの読み(発音記号) 8,444語。元データ [ipa-dict](https://github.com/open-dict-data/ipa-dict) en_US (MIT)。問題には取り込まず、単語クイズの画面で語の下に表示(🔊=Worker `/tts`、失敗時はブラウザの読み上げ)。再生成=`python3 tools/build_ipa.py en_US.txt cefrj.csv cefr_c.csv`
 再生成: 元データを1つのフォルダに置いて `python3 tools/build_packs.py <フォルダ>`(取得URLはスクリプト冒頭)。誤答は同レベル・同品詞の別の語の意味から、意味の語が重ならないものを選ぶ。
 
 ## リスニング(音声4択)
