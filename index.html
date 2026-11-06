@@ -2107,17 +2107,27 @@ function clipsOf(sec){ // ordered audio clips for a listening section: [{key,tex
 }
 function optSpeech(sec,i,o){return (testRun.course==='jp'?(i+1)+'. ':'('+testLabel(sec,i)+') ')+o;}
 function clipKey(c){return c.voice+'|'+c.text;}
-async function fetchClip(c){
-  var k=clipKey(c);if(testClips[k])return testClips[k];
+var _clipInflight={},_warmedRun=null;
+function fetchClip(c){ // 同じ音声の同時取得は1本にまとめる(先読みと本番の準備が重なっても二重に作らない)
+  var k=clipKey(c);if(testClips[k])return Promise.resolve(testClips[k]);
+  if(!_clipInflight[k])_clipInflight[k]=fetchClipRaw(c).finally(function(){delete _clipInflight[k];});
+  return _clipInflight[k];
+}
+function warmListening(){ // 聴解より前のセクション中に、後の聴解の音声を裏で作っておく(失敗は無視→聴解の開始前の準備で再取得)
+  if(!testRun||_warmedRun===testRun)return;_warmedRun=testRun;
+  testRun.test.sections.slice(testRun.si).filter(function(s){return s.audio;}).forEach(function(s){prefetchClips(clipsOf(s),function(){},2).catch(function(){});});
+}
+async function fetchClipRaw(c){
+  var k=clipKey(c);
   var call=function(){return fetch(ttsUrl(),{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+accessToken},body:JSON.stringify({text:c.text,voice:c.voice,speed:testSpeed()})});};
   var r=await call();if(r.status===401){await refreshAccessToken();r=await call();}
   if(!r.ok)throw new Error('HTTP '+r.status);
   var b=await r.blob();if(!b||!b.size)throw new Error('empty audio');testClips[k]=URL.createObjectURL(b);return testClips[k];
 }
-async function prefetchClips(clips,onProgress){
+async function prefetchClips(clips,onProgress,nw){
   var todo=clips.filter(function(c){return !testClips[clipKey(c)];}),done=0,i=0,fail=null;
   async function worker(){while(i<todo.length&&!fail){var c=todo[i++];var ok=false;for(var a=0;a<3&&!ok;a++){try{await fetchClip(c);ok=true;}catch(e){if(a===2)fail=e;}}done++;onProgress(done,todo.length);}}
-  await Promise.all([worker(),worker(),worker(),worker(),worker(),worker()]);
+  var ws=[];for(var w=0;w<(nw||6);w++)ws.push(worker());await Promise.all(ws);
   if(fail)throw fail;
 }
 function testProgressHtml(msg,d,n){return '<div class="card" style="text-align:center"><p>'+msg+'</p><div class="spinner"></div>'+(n?'<p class="hint">'+d+' / '+n+'</p>':'')+'</div>';}
@@ -2140,7 +2150,7 @@ async function prepareAndStartSection(){ // called from a click (needed for audi
   if(testRun.status!=='running'){testRun.status='running';testRun.endsAt=Date.now()+sec.minutes*60000;}
   testRun.needResume=false;saveTestRun();
   startTestTimer();render();window.scrollTo(0,0);
-  if(sec.audio)runListening(testRun.runToken=Math.random());
+  if(sec.audio)runListening(testRun.runToken=Math.random());else warmListening();
 }
 function startTestTimer(){clearInterval(_testIv);_testIv=setInterval(testTick,1000);}
 function testTick(){
